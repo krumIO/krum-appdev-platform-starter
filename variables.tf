@@ -55,3 +55,8 @@ variable "kube_config_file" {
   description = "Path to kubeconfig file"
   default     = "./artifacts/output_files/kubeconfig"
 }
+
+variable "nexus_license_file_path" {
+  description = "The path to the Sonatype Nexus license file."
+  type        = string
+}

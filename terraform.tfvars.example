@@ -7,3 +7,6 @@ email = "email_for_lets_encrypt-certificates"
 ## if deploying a database module
 db_name = "" 
 db_node_count = null 
+
+## Sonatype License
+nexus_license_file_path = "./artifacts/input_files/sonatype.lic"

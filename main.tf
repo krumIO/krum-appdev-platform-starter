@@ -125,7 +125,7 @@ module "nexus" {
 
   environment         = "production"
   nxrm_version        = "57.0.0"
-  nexus_license_file  = "./artifacts/input_files/b2c09aca7f7413068e3bb3b686a1d58d5282127f.lic"
+  nexus_license_file  = var.nexus_license_file_path
   db_name             = "nexusdb"
   postgresql_version  = "12.6.5"
   postgresql_username = "nxrm"
