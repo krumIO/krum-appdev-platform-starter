@@ -4,19 +4,19 @@ terraform {
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "2.20.0"
+      version = "2.22.0"
     }
     helm = {
       source  = "hashicorp/helm"
-      version = "2.9.0"
+      version = "2.10.1"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
-      version = "1.13.0"
+      version = "1.14.0"
     }
     local = {
       source  = "hashicorp/local"
-      version = "1.4.0"
+      version = "2.4.0"
     }
     random = {
       source  = "hashicorp/random"
