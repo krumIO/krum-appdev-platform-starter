@@ -165,8 +165,8 @@ locals {
   db_credentials = "username: ${local.db_username}\npassword: ${module.nxrm_database.database_password}"
 }
 
-resource "local_file" "database_credentials" {
-  sensitive_content = local.db_credentials
+resource "local_sensitive_file" "database_credentials" {
+  content = local.db_credentials
   filename          = "./artifacts/output_files/database-credentials.txt"
 }
 ##########################################################

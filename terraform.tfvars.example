@@ -5,7 +5,7 @@ civo_token = "your_civo_api_token"
 email = "email_for_lets_encrypt-certificates"
 
 ## if deploying a database module
-db_name = "" 
+db_name = "nxrmdb" 
 db_node_count = null 
 
 ## Sonatype License

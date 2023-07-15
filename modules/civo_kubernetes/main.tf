@@ -74,9 +74,9 @@ resource "civo_kubernetes_cluster" "cluster" {
   }
 }
 
-resource "local_file" "civo_sandbox_cluster-kubeconfig" {
+resource "local_sensitive_file" "civo_sandbox_cluster-kubeconfig" {
   filename          = var.kube_config_output_path
-  sensitive_content = resource.civo_kubernetes_cluster.cluster.kubeconfig
+  content = resource.civo_kubernetes_cluster.cluster.kubeconfig
 
 
   depends_on = [resource.civo_kubernetes_cluster.cluster]
