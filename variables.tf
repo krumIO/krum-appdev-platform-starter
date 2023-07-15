@@ -25,11 +25,6 @@ variable "traefik_version" {
   default     = "23.1.0"
 }
 
-variable "traefik_dashboard_password" {
-  description = "password for traefik dashboard"
-  default     = "traefik"
-}
-
 variable "ingress_class_name" {
   description = "ingress class name"
   default     = "traefik"
@@ -43,7 +38,7 @@ variable "ignore_rancher_metadata" {
 // Civo Database
 variable "db_name" {
   description = "Name of the database"
-  default     = "nxrm"
+  default     = "nxrmdb"
 }
 
 variable "db_node_count" {

@@ -1,10 +1,6 @@
 ## Providers ##
 terraform {
   required_providers {
-    civo = {
-      source  = "civo/civo"
-      version = "1.0.34"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "2.20.0"
@@ -42,6 +38,7 @@ variable "traefik_dashboard_password" {
   description = "Password for accessing Traefik dashboard"
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "kube_config_file" {
@@ -158,7 +155,7 @@ ingressRoute:
   # - name: basic-auth
   #   basicAuth:
   #     users:
-  #     - "admin:${var.traefik_dashboard_password}"
+  #     - "admin:"
 
 
 
@@ -260,40 +257,6 @@ subjects:
 YAML
   depends_on = [helm_release.traefik_ingress_controller]
 }
-
-# resource "kubectl_manifest" "traefik_dashboard_auth_secret" {
-#   provider   = kubectl
-#   yaml_body  = <<YAML
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: traefik-dashboard-auth
-#   namespace: traefik
-# type: Opaque
-# data:
-#     users: ${base64encode("admin:${var.traefik_dashboard_password}")}
-# YAML
-#   depends_on = [helm_release.traefik_ingress_controller]
-# }
-
-# resource "kubectl_manifest" "traefik_dashboard_auth_middleware" {
-#   provider  = kubectl
-#   yaml_body = <<-YAML
-# apiVersion: traefik.containo.us/v1alpha1
-# kind: Middleware
-# metadata:
-#   name: basic-auth
-#   namespace: traefik
-# spec:
-#   basicAuth:
-#     secret: traefik-dashboard-auth
-# YAML
-
-#   depends_on = [
-#     helm_release.traefik_ingress_controller,
-#     kubectl_manifest.traefik_dashboard_auth_secret,
-#   ]
-# }
 
 
 output "load_balancer_ip" {

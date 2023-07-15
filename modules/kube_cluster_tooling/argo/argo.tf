@@ -1,10 +1,7 @@
+###############################################
 ## Providers ##
 terraform {
   required_providers {
-    civo = {
-      source  = "civo/civo"
-      version = "1.0.34"
-    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "2.20.0"
@@ -28,10 +25,8 @@ terraform {
   }
 }
 
-variable "rancher_version" {
-  description = "The version of the Rancher to be deployed."
-  type        = string
-}
+###############################################
+## Variables ##
 
 variable "dns_domain" {
   description = "The DNS domain to be used for the setup."
@@ -40,11 +35,6 @@ variable "dns_domain" {
 
 variable "ingress_class_name" {
   description = "The Ingress Class Name."
-  type        = string
-}
-
-variable "rancher_server_admin_password" {
-  description = "The password for the Rancher server admin."
   type        = string
 }
 
@@ -58,10 +48,15 @@ variable "email" {
   type        = string
 }
 
-# Uncomment this if you want to deploy argo workflows
 variable "argo_workflows_version" {
   description = "The version of the Argo Workflows to be deployed."
   type        = string
+}
+
+variable "argo_workflows_ingress_enabled" {
+  description = "The version of the Argo Workflows to be deployed."
+  type        = bool
+  default     = false
 }
 
 variable "argo_events_version" {
@@ -75,71 +70,12 @@ variable "kube_config_file" {
 }
 
 
-# ##############################################
-## Rancher ##
-resource "helm_release" "rancher" {
-  name       = "rancher"
-  repository = "https://releases.rancher.com/server-charts/stable"
-  chart      = "rancher"
-  version    = var.rancher_version
 
-  namespace        = "cattle-system"
-  create_namespace = true
-  wait             = true
-
-  set {
-    name  = "hostname"
-    value = "rancher.${var.dns_domain}"
-  }
-  set {
-    name  = "ingress.ingressClassName"
-    value = var.ingress_class_name
-  }
-  set {
-    name  = "ingress.tls.source"
-    value = "cert-manager"
-  }
-  set {
-    name  = "ingress.tls.certManager.issuerName"
-    value = "letsencrypt-production"
-  }
-  set {
-    name  = "ingress.tls.secretName"
-    value = "tls-rancher-cert"
-  }
-  set {
-    name  = "ingress.tls.hosts"
-    value = "rancher.${var.dns_domain}"
-  }
-  set {
-    name  = "ingress.annotations.cert-manager\\.io/cluster-issuer"
-    value = "letsencrypt-production"
-  }
-  set {
-    name  = "bootstrapPassword"
-    value = var.rancher_server_admin_password
-  }
-  set {
-    name  = "replicas"
-    value = "3"
-  }
-  set {
-    name  = "ingress.tls.source"
-    value = "letsEncrypt"
-  }
-  set {
-    name  = "letsEncrypt.email"
-    value = var.email
-  }
-
-
-}
 
 ##############################################
 ## ArgoCD ##
 
-
-
+// argo-cd
 resource "helm_release" "argo_cd" {
   name       = "argo-cd"
   repository = "https://argoproj.github.io/argo-helm"
@@ -187,7 +123,6 @@ server:
 EOF
   ]
 
-
 }
 
 // argo-workflows
@@ -216,7 +151,7 @@ server:
     annotations:
       traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt-production
       kubernetes.io/ssl-passthrough: "true"
-    enabled: true
+    enabled: ${var.argo_workflows_ingress_enabled}
     hosts:
     - argo-workflows.${var.dns_domain}
     servicePort: 80
@@ -242,14 +177,9 @@ resource "helm_release" "argo_events" {
     value = "true"
   }
 
-  # values = [local.argo_events_values]
-
   depends_on = [
     helm_release.argo_cd,
   ]
 
 }
 
-
-
-##################################################################################

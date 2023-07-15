@@ -2,7 +2,7 @@ terraform {
   required_providers {
     civo = {
       source  = "civo/civo"
-      version = "1.0.34"
+      version = "1.0.35"
     }
   }
 }
@@ -101,9 +101,20 @@ resource "civo_firewall" "db_firewall" {
 
 }
 
+data "civo_database" "custom" {
+  name   = civo_database.custom_database.name
+  region = civo_database.custom_database.region
+
+  depends_on = [civo_database.custom_database]
+}
 ############################################
 
 output "database_password" {
   value     = civo_database.custom_database.password
   sensitive = true
+}
+
+
+output "dns_endpoint" {
+  value = data.civo_database.custom.endpoint
 }
