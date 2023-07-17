@@ -1,100 +1,4 @@
-##################################################################################
-## Sonatype Nexus ##
-terraform {
-  required_providers {
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "2.22.0"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "2.10.1"
-    }
-    kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "1.14.0"
-    }
-    local = {
-      source  = "hashicorp/local"
-      version = "2.4.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.5.1"
-    }
-  }
-}
-
-variable "environment" {
-  description = "The deployment environment (development or production)."
-  type        = string
-}
-
-variable "nxrm_version" {
-  description = "The version of the Sonatype Nexus to be deployed."
-  type        = string
-}
-
-variable "nexus_license_file" {
-  description = "The path to the Sonatype Nexus license file."
-  type        = string
-}
-
-variable "db_name" {
-  description = "The name of the database to be created."
-  type        = string
-}
-
-variable "postgresql_version" {
-  description = "The version of the PostgreSQL to be deployed."
-  type        = string
-}
-
-variable "postgresql_username" {
-  description = "The username for the PostgreSQL."
-  type        = string
-}
-
-variable "outputs_path" {
-  description = "The path to the outputs folder."
-  type        = string
-}
-
-variable "dns_domain" {
-  description = "The DNS domain to be used for the setup."
-  type        = string
-}
-
-variable "ingress_class_name" {
-  description = "The Ingress Class Name."
-  type        = string
-}
-
-// Prod Values
-variable "prod_db_host" {
-  description = "The host of the external database for the production environment."
-  type        = string
-  default     = ""
-}
-
-variable "prod_db_username" {
-  description = "The username for the external database for the production environment."
-  type        = string
-  default     = ""
-}
-
-variable "prod_db_password" {
-  description = "The password for the external database for the production environment."
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "prod_db_name" {
-  description = "The name of the external database for the production environment."
-  type        = string
-  default     = ""
-}
+##########################################################################################
 
 // Create random password for postgresql
 resource "random_password" "postgresql_password" {
@@ -104,9 +8,9 @@ resource "random_password" "postgresql_password" {
 }
 
 // export the password to a file
-resource "local_file" "postgresql_password" {
-  sensitive_content = random_password.postgresql_password.result
-  filename          = "${var.outputs_path}/postgresql-password.txt"
+resource "local_sensitive_file" "postgresql_password" {
+  content  = random_password.postgresql_password.result
+  filename = "${var.outputs_path}/postgresql-password.txt"
 }
 
 // Dev Database Container
@@ -218,5 +122,31 @@ YAML
 
 output "postgresql_service_name" {
   value = var.environment == "development" ? helm_release.postgresql[0].name : ""
+}
+
+
+//license secret
+resource "kubernetes_secret" "iq_server_license_secret" {
+  metadata {
+    name      = "iq-server-license-secret"
+    namespace = "nexus"
+  }
+  depends_on = [helm_release.nxrm]
+  data = {
+    "license_lic" = local.nexus_license_base64
+  }
+}
+
+//db secret
+resource "kubernetes_secret" "nxrm_db_secret" {
+  metadata {
+    name      = "nxrm-db-secret"
+    namespace = "nexus"
+  }
+  depends_on = [helm_release.nxrm]
+  data = {
+    username = var.environment == "development" ? var.postgresql_username : var.prod_db_username
+    password = var.environment == "development" ? random_password.postgresql_password.result : var.prod_db_password
+  }
 }
 

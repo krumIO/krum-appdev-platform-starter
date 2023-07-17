@@ -55,7 +55,7 @@ resource "random_id" "suffix" {
 }
 
 #############################################################
-## Kubernetes ##
+// Civo Infrastructure
 module "civo_sandbox_cluster" {
   source = "./modules/civo_kubernetes"
 
@@ -78,41 +78,52 @@ module "civo_sandbox_cluster_network" {
 }
 
 #############################################################
-
 // Cluster Tooling
+
+// Loadbalancer Ingress Controller, Cert Manager
 module "kube_loadbalancer" {
   source           = "./modules/kube_cluster_tooling/loadbalancer_resources"
   kube_config_file = var.kube_config_file
 
+  // Email for letsencrypt. Supplied in terraform.tfvars
   email           = var.email
+  // Chart versions
   traefik_version = "23.1.0"
 
   depends_on = [module.civo_sandbox_cluster,
   ]
 }
 
+// Rancher
 module "rancher" {
   source           = "./modules/kube_cluster_tooling/rancher"
   kube_config_file = var.kube_config_file
 
-  email                 = var.email
+  // Chart versions
   rancher_version       = "2.7.5"
+  // Ingress details
+  email                 = var.email
   dns_domain            = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
   ingress_class_name    = "traefik"
-  file_output_directory = "./artifacts/output_files" // This is where the random password will be stored
+  // Rancher admin password
+  file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
 
   depends_on = [module.kube_loadbalancer,
   ]
 }
 
+// Argo suite
 module "argo" {
   source           = "./modules/kube_cluster_tooling/argo"
   kube_config_file = var.kube_config_file
 
-  email                  = var.email
+ 
+  // chart versions
   argo_cd_version        = "5.38.0"
   argo_workflows_version = "0.30.0"
   argo_events_version    = "2.4.0"
+  // ingress details
+  email                  = var.email
   dns_domain             = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
   ingress_class_name     = "traefik"
 
@@ -120,16 +131,22 @@ module "argo" {
   ]
 }
 
+// Sonatype Nexus and IQ Server with PostgreSQL database if required
 module "nexus" {
   source = "./modules/kube_cluster_tooling/sonatype_nexus"
 
   environment         = "production"
+  // chart version
   nxrm_version        = "57.0.0"
+  iq_server_version   = "164.0.0"
+  // license
   nexus_license_file  = var.nexus_license_file_path
+  // database details
   db_name             = "nexusdb"
   postgresql_version  = "12.6.5"
   postgresql_username = "nxrm"
   outputs_path        = "./artifacts/output_files"
+  // ingress details
   dns_domain          = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
   ingress_class_name  = "traefik"
 
@@ -141,15 +158,13 @@ module "nexus" {
 
   depends_on = [
     module.kube_loadbalancer, //required for both production and development environments
-    module.nxrm_database,     // Only required for the production environment  - Commend out if development
+    module.nxrm_database,     // Only required for the production environment  - Comment out if development
   ]
 }
 
 
 ##########################################################
-## Database ##
-
-
+// Civo Database Used with Sonatype Nexus in Production Environment
 module "nxrm_database" {
   source = "./modules/civo_db"
 
@@ -160,6 +175,7 @@ module "nxrm_database" {
   firewall_ingress_cidr = var.db_firewall_ingress_cidr
 }
 
+// Local file to store database credentials
 locals {
   db_username    = "civo" # Change this to "root" if you're using MySQL
   db_credentials = "username: ${local.db_username}\npassword: ${module.nxrm_database.database_password}"
