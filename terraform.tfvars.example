@@ -9,4 +9,5 @@ db_name = "nxrmdb"
 db_node_count = null 
 
 ## Sonatype License
-nexus_license_file_path = "./artifacts/input_files/sonatype.lic"
+# If no license exists, set to null
+nexus_license_file_path = null  # "./artifacts/input_files/sonatype.lic"

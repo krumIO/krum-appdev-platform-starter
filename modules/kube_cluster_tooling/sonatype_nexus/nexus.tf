@@ -53,9 +53,14 @@ data "kubernetes_service" "nexus-postgresql" {
   depends_on = [helm_release.postgresql]
 }
 
+# locals {
+#   nexus_license_base64 = filebase64(var.nexus_license_file)
+# }
+
 locals {
-  nexus_license_base64 = filebase64(var.nexus_license_file)
+  nexus_license_base64 = var.nexus_license_file != null ? filebase64(var.nexus_license_file) : "dummy_license_content"
 }
+
 
 // Nexus
 resource "helm_release" "nxrm" {
@@ -88,6 +93,7 @@ env:
       ${var.environment == "development" ? "-Xms2703M -Xmx2703M -XX:+UnlockExperimentalVMOptions -XX:ActiveProcessorCount=4 -XX:+UseCGroupMemoryLimitForHeap" : ""}
       -Djava.util.prefs.userRoot=/nexus-data/javaprefs
       -Dnexus.licenseFile=/etc/nexus-license/license.lic
+      # ${var.nexus_license_file != null ? "-Dnexus.licenseFile=/etc/nexus-license/license.lic" : ""}
       -Dnexus.datastore.enabled=true
       -Dnexus.datastore.nexus.username=${var.environment == "development" ? var.postgresql_username : var.prod_db_username}
       -Dnexus.datastore.nexus.password=${var.environment == "development" ? random_password.postgresql_password.result : var.prod_db_password}
@@ -108,7 +114,7 @@ ingress:
 namespaces:
   nexusNs: nxrm
 secret:
-  enabled: true
+  enabled: ${var.nexus_license_file != null ? "true" : "false"}
   mountPath: /etc/nexus-license/
   data:
     license.lic: ${local.nexus_license_base64}
@@ -125,8 +131,10 @@ output "postgresql_service_name" {
 }
 
 
-//license secret
+
 resource "kubernetes_secret" "iq_server_license_secret" {
+  count = var.nexus_license_file != null ? 1 : 0
+
   metadata {
     name      = "iq-server-license-secret"
     namespace = "nexus"
@@ -136,6 +144,7 @@ resource "kubernetes_secret" "iq_server_license_secret" {
     "license_lic" = local.nexus_license_base64
   }
 }
+
 
 //db secret
 resource "kubernetes_secret" "nxrm_db_secret" {

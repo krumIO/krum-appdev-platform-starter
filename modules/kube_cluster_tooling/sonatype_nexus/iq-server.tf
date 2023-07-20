@@ -37,7 +37,7 @@ resource "helm_release" "iq_server" {
 
   set {
     name  = "iq.licenseSecret"
-    value = local.nexus_license_base64
+    value = var.nexus_license_file != null ? local.nexus_license_base64 : "ZHVtbXlfbGljZW5zZV92YWx1ZQo=" # dummy license
   }
 
   set {
@@ -100,7 +100,6 @@ resource "helm_release" "iq_server" {
 
   depends_on = [
     helm_release.nxrm,
-    # kubernetes_secret.iq_server_license_secret,
     kubernetes_secret.nxrm_db_secret
   ]
 
@@ -108,10 +107,14 @@ resource "helm_release" "iq_server" {
 
 locals {
   iq_server_config = <<-YAML
+ingress:
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt-production
+    traefik.ingress.kubernetes.io/rewrite-target: "0"
 configYaml:
   baseUrl: "https://nexus-iq.${var.dns_domain}"
   sonatypeWork: /sonatype-work
-  licenseFile: /etc/nexus-iq-license/license_lic
+  ${var.nexus_license_file != null ? "licenseFile: /etc/nexus-iq-license/license_lic" : ""}
   initialAdminPassword: ${random_password.iq_admin_password.result}
   features:
     enableUnauthenticatedPages: true
