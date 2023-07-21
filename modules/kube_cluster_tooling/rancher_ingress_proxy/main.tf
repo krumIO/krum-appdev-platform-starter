@@ -41,8 +41,8 @@ metadata:
   annotations:
     traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt-production
     traefik.ingress.kubernetes.io/rewrite-target: "0"
-  ingressClassName: ${var.ingress_class_name}
 spec:
+    ingressClassName: ${var.ingress_class_name}
     rules:
     - host: rancher.${var.dns_domain}
       http:
