@@ -60,10 +60,10 @@ resource "helm_release" "iq_server" {
     value = "nexus-iq.${var.dns_domain}"
   }
 
-  set {
-    name  = "ingress.hostAdmin"
-    value = "admin-iq.${var.dns_domain}"
-  }
+  # set {
+  #   name  = "ingress.hostAdmin"
+  #   value = ""
+  # }
 
   set {
     name  = "ingress.tls[0].hosts[0]"
@@ -75,15 +75,15 @@ resource "helm_release" "iq_server" {
     value = "tls-nexus-iq-cert"
   }
 
-  set {
-    name  = "ingress.tls[1].hosts[0]"
-    value = "admin-iq.${var.dns_domain}"
-  }
+  # set {
+  #   name  = "ingress.tls[1].hosts[0]"
+  #   value = "admin-iq.${var.dns_domain}"
+  # }
 
-  set {
-    name  = "ingress.tls[1].secretName"
-    value = "tls-nexus-iq-cert"
-  }
+  # set {
+  #   name  = "ingress.tls[1].secretName"
+  #   value = "tls-nexus-iq-cert"
+  # }
 
   set {
     name  = "ingress.enabled"
@@ -138,4 +138,3 @@ configYaml:
           archivedFileCount: 50
 YAML
 }
-

@@ -57,7 +57,7 @@ resource "random_id" "suffix" {
 #############################################################
 // Civo Infrastructure
 module "civo_sandbox_cluster" {
-  source = "./modules/civo_kubernetes"
+  source = "./modules/civo/civo_kubernetes"
 
   cluster_name            = "civo-sandbox-${random_id.suffix.hex}"
   cluster_type            = "k3s"
@@ -73,7 +73,7 @@ module "civo_sandbox_cluster" {
 }
 
 module "civo_sandbox_cluster_network" {
-  source       = "./modules/civo_network"
+  source       = "./modules/civo/civo_network"
   network_name = "civo_sandbox_cluster-network"
 }
 
@@ -131,6 +131,24 @@ module "argo" {
   ]
 }
 
+// Workflows Ingress Proxied
+module "argo_workflows_ingress_proxied" {
+  source           = "./modules/kube_cluster_tooling/rancher_ingress_proxy"
+
+  ingress_display_name = "argo-workflows"
+  protocol        = "http"
+  service_name    = "argo-workflows-server"
+  service_port    = 2746
+  namespace       = "argocd"
+  dns_domain      = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name = "traefik"
+
+  depends_on = [module.kube_loadbalancer,
+    module.rancher,
+    module.argo,
+  ]
+}
+
 // Sonatype Nexus and IQ Server with PostgreSQL database if required
 module "nexus" {
   source = "./modules/kube_cluster_tooling/sonatype_nexus"
@@ -166,7 +184,7 @@ module "nexus" {
 ##########################################################
 // Civo Database Used with Sonatype Nexus in Production Environment
 module "nxrm_database" {
-  source = "./modules/civo_db"
+  source = "./modules/civo/civo_db"
 
   db_name               = var.db_name
   region                = var.civo_region
@@ -184,5 +202,23 @@ locals {
 resource "local_sensitive_file" "database_credentials" {
   content = local.db_credentials
   filename          = "./artifacts/output_files/database-credentials.txt"
+}
+
+// Create Ingress for QI admin interface
+module "iq_admin_ingress_proxied" {
+  source = "./modules/kube_cluster_tooling/rancher_ingress_proxy"
+  
+  ingress_display_name = "nxiq-admin"
+  protocol        = "http"
+  service_name    = "nexus-iq-server"
+  service_port    = 8071
+  namespace       = "nexus"
+  dns_domain      = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name = "traefik"
+
+  depends_on = [module.kube_loadbalancer,
+    module.rancher,
+    module.nexus
+  ]
 }
 ##########################################################
