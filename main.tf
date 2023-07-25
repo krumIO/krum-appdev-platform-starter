@@ -37,19 +37,32 @@ provider "civo" {
 }
 
 provider "kubernetes" {
-  config_path = "./artifacts/output_files/kubeconfig.yaml"
+  # config_path = "./artifacts/output_files/kubeconfig.yaml"
+  host                   = module.civo_sandbox_cluster.api_endpoint
+  client_certificate     = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-certificate-data)
+  client_key             = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-key-data)
+  cluster_ca_certificate = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
 }
 
 provider "helm" {
   kubernetes {
-    config_path = "./artifacts/output_files/kubeconfig.yaml"
+    # config_path = "./artifacts/output_files/kubeconfig.yaml"
+    host                   = module.civo_sandbox_cluster.api_endpoint
+    client_certificate     = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-certificate-data)
+    client_key             = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-key-data)
+    cluster_ca_certificate = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
   }
 }
 
 provider "kubectl" {
-  config_path = "./artifacts/output_files/kubeconfig.yaml"
+  # config_path = "./artifacts/output_files/kubeconfig.yaml"
+  host                   = module.civo_sandbox_cluster.api_endpoint
+  client_certificate     = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-certificate-data)
+  client_key             = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-key-data)
+  cluster_ca_certificate = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
 }
 
+// Use a random suffix to ensure the cluster name is unique
 resource "random_id" "suffix" {
   byte_length = 4
 }
@@ -86,7 +99,7 @@ module "kube_loadbalancer" {
   kube_config_file = var.kube_config_file
 
   // Email for letsencrypt. Supplied in terraform.tfvars
-  email           = var.email
+  email = var.email
   // Chart versions
   traefik_version = "23.1.0"
 
@@ -100,11 +113,11 @@ module "rancher" {
   kube_config_file = var.kube_config_file
 
   // Chart versions
-  rancher_version       = "2.7.5"
+  rancher_version = "2.7.5"
   // Ingress details
-  email                 = var.email
-  dns_domain            = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
-  ingress_class_name    = "traefik"
+  email              = var.email
+  dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name = "traefik"
   // Rancher admin password
   file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
 
@@ -117,15 +130,15 @@ module "argo" {
   source           = "./modules/kube_cluster_tooling/argo"
   kube_config_file = var.kube_config_file
 
- 
+
   // chart versions
   argo_cd_version        = "5.38.0"
   argo_workflows_version = "0.30.0"
   argo_events_version    = "2.4.0"
   // ingress details
-  email                  = var.email
-  dns_domain             = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
-  ingress_class_name     = "traefik"
+  email              = var.email
+  dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name = "traefik"
 
   depends_on = [module.kube_loadbalancer,
   ]
@@ -133,15 +146,15 @@ module "argo" {
 
 // Workflows Ingress Proxied
 module "argo_workflows_ingress_proxied" {
-  source           = "./modules/kube_cluster_tooling/rancher_ingress_proxy"
+  source = "./modules/kube_cluster_tooling/rancher_ingress_proxy"
 
   ingress_display_name = "argo-workflows"
-  protocol        = "http"
-  service_name    = "argo-workflows-server"
-  service_port    = 2746
-  namespace       = "argocd"
-  dns_domain      = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
-  ingress_class_name = "traefik"
+  protocol             = "http"
+  service_name         = "argo-workflows-server"
+  service_port         = 2746
+  namespace            = "argocd"
+  dns_domain           = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name   = "traefik"
 
   depends_on = [module.kube_loadbalancer,
     module.rancher,
@@ -153,20 +166,20 @@ module "argo_workflows_ingress_proxied" {
 module "nexus" {
   source = "./modules/kube_cluster_tooling/sonatype_nexus"
 
-  environment         = "production"
+  environment = "production"
   // chart version
-  nxrm_version        = "57.0.0"
-  iq_server_version   = "164.0.0"
+  nxrm_version      = "58.1.0"
+  iq_server_version = "164.0.0"
   // license
-  nexus_license_file  = var.nexus_license_file_path
+  nexus_license_file = var.nexus_license_file_path
   // database details
   db_name             = "nexusdb"
   postgresql_version  = "12.6.5"
   postgresql_username = "nxrm"
   outputs_path        = "./artifacts/output_files"
   // ingress details
-  dns_domain          = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
-  ingress_class_name  = "traefik"
+  dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name = "traefik"
 
   // Only required for the production environment
   prod_db_host     = module.nxrm_database.dns_endpoint      # existing-db-host
@@ -200,21 +213,21 @@ locals {
 }
 
 resource "local_sensitive_file" "database_credentials" {
-  content = local.db_credentials
-  filename          = "./artifacts/output_files/database-credentials.txt"
+  content  = local.db_credentials
+  filename = "./artifacts/output_files/database-credentials.txt"
 }
 
 // Create Ingress for QI admin interface
 module "iq_admin_ingress_proxied" {
   source = "./modules/kube_cluster_tooling/rancher_ingress_proxy"
-  
+
   ingress_display_name = "nxiq-admin"
-  protocol        = "http"
-  service_name    = "nexus-iq-server"
-  service_port    = 8071
-  namespace       = "nexus"
-  dns_domain      = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
-  ingress_class_name = "traefik"
+  protocol             = "http"
+  service_name         = "nexus-iq-server"
+  service_port         = 8071
+  namespace            = "nexus"
+  dns_domain           = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name   = "traefik"
 
   depends_on = [module.kube_loadbalancer,
     module.rancher,

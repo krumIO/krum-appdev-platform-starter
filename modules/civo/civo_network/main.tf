@@ -9,6 +9,7 @@ terraform {
 
 variable "network_name" {}
 
+// Create a random ID for the network suffix to avoid conflicts
 resource "random_id" "network_suffix" {
   byte_length = 4
 }

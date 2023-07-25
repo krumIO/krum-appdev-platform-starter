@@ -95,3 +95,8 @@ output "kubeconfig" {
   value       = civo_kubernetes_cluster.cluster.kubeconfig
   sensitive   = true
 }
+
+output "api_endpoint" {
+  description = "API endpoint for the created cluster"
+  value       = civo_kubernetes_cluster.cluster.api_endpoint
+}
