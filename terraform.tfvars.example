@@ -6,7 +6,7 @@ email = "email_for_lets_encrypt-certificates"
 
 ## if deploying a database module
 db_name = "nxrmdb" 
-db_node_count = null 
+db_node_count = 1 
 
 ## Sonatype License
 # If no license exists, set to null

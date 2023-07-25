@@ -1,81 +1,101 @@
+# Terraform Script Readme
 
-# Terraform Deployment on Civo Cloud
-
-This repository includes Terraform code to deploy a Kubernetes cluster on Civo Cloud and install various Kubernetes resources on the cluster. 
-
-The resources include the following:
-
-- A Kubernetes cluster and network in Civo Cloud
-- A Kubernetes config file
-- A load balancer
-- Rancher admin credentials
-- Traefik dashboard credentials
-- Various other Kubernetes resources, including a deployment of Traefik as an ingress controller
-
-The deployment is divided into two phases:
-
-1. Deploy the Civo Cloud resources, including the Kubernetes cluster, network, and a local kubeconfig file.
-2. Deploy Kubernetes resources on the cluster, using the kubeconfig file from phase 1.
-
-The reason for this two-phase deployment is that many of the Kubernetes resources rely on the Kubernetes cluster and kubeconfig file created in the first phase. We need to ensure that the Kubernetes cluster is fully provisioned and the kubeconfig file is created before we can start deploying the Kubernetes resources in phase 2.
+This script helps set up a Kubernetes cluster using the Civo provider, as well as deploy various tools on the cluster like Traefik Ingress Controller, Cert Manager, Rancher, Argo suite, Sonatype Nexus and IQ Server with PostgreSQL database. The script also handles the creation of required network and database resources.
 
 ## Prerequisites
 
-You need to have Terraform installed and configured to use the Civo provider. See the Terraform and Civo provider documentation for details.
+- Terraform v0.13+ installed.
+- Civo API token.
+- Kubernetes CLI and Helm CLI installed.
+- Access to an active Civo region.
+- Active email for letsencrypt.
 
-In addition, you need to provide the following variables:
+## Providers and Modules
 
-- `civo_region`: The Civo region to deploy the resources, for example "PHX1".
-- `civo_token`: Your Civo API token.
-- `email`: Your email address, which is used for Let's Encrypt certificates.
+This script uses the following Terraform providers:
 
-If you're deploying a database module, you'll also need to provide:
+- Civo
+- Kubernetes
+- Helm
+- Kubectl
+- Local
+- Random
 
-- `db_name`: The name of your database.
-- `db_node_count`: The number of nodes for your database.
+## Variables
 
-## Usage
+You should create a `terraform.tfvars` file in the same directory as your `.tf` files. Here's an example:
 
-Clone this repository and navigate to the directory:
-
-```bash
-git clone https://github.com/krumIO/krum-appdev-platform-starter.git
-cd ./krum-appdev-platform-starter
+```hcl
+civo_token                 = "your_civo_api_token"
+civo_region                = "PHX1"
+email                      = "your_email_for_letsencrypt"
+nexus_license_file_path    = null // "path_to_your_nexus_license_file_or_null"
+db_name                    = "nxrmdb"
+db_node_count              = 1
 ```
 
-Initialize your Terraform workspace, which will download the provider plugins:
+## Steps
+
+1. **Clone the repository**
+
+    Clone the repository to your local system with the following command:
+
+    ```bash
+    git clone https://github.com/krumIO/krum-appdev-platform-starter.git
+    ```
+
+2. **Navigate to the project directory**
+
+    Change your directory to the project directory:
+
+    ```bash
+    cd ./krum-appdev-platform-starter
+    ```
+
+    Replace `[project-directory]` with the name of your project directory.
+
+3. **Initialize Terraform**
+
+    Initialize your Terraform workspace, which will download the provider plugins for Civo, Kubernetes, Helm, Kubectl, Local, and Random.
+
+    ```bash
+    terraform init
+    ```
+
+4. **Plan and apply**
+
+    In order to see any changes that are required for your infrastructure, use:
+
+    ```bash
+    terraform plan
+    ```
+
+    To apply changes to the infrastructure, use:
+
+    ```bash
+    terraform apply
+    ```
+
+    Terraform will show the plan and prompt for approval. If everything looks good, approve the plan and Terraform will make the necessary changes.
+
+## Cleanup
+
+When you're done with the infrastructure created by this script, you can remove all resources by using the `destroy` command. This will delete all resources that Terraform has created.
 
 ```bash
-terraform init
+terraform destroy
 ```
 
-There are two phases to the deployment:
+Terraform will show the plan for destruction and prompt for approval. If you agree with the plan, approve it and Terraform will destroy all the resources.
 
-1. Deploy the Civo Cloud resources, including the Kubernetes cluster, network, and a local kubeconfig file.
-2. Deploy Kubernetes resources on the cluster, using the kubeconfig file from phase 1.
-
-### Phase 1
-
-Run the following command:
+After running `terraform destroy`, you may want to delete the `.terraform` directory and `terraform.tfstate` files to fully clean up your local workspace.
 
 ```bash
-terraform apply -target=module.civo_sandbox_cluster -target=module.civo_sandbox_cluster_network
+rm -rf .terraform terraform.tfstate terraform.tfstate.backup
 ```
 
-This will prompt you to confirm the changes. Type `yes` and press Enter to confirm.
+## Important Note
 
-### Phase 2
+This script uses sensitive data. Never expose your `terraform.tfvars` file, as it contains sensitive information like your Civo API token, email, and potentially other secrets. Always add your `*.tfvars` file to your `.gitignore` to prevent committing it to version control.
 
-Before starting phase 2, ensure that the Kubernetes API server is accessible and the nodes are ready. You can check this by running `kubectl cluster-info` and `kubectl get nodes`. Once the API server is accessible and the nodes are ready, run the following command:
-
-```bash
-terraform apply
-```
-
-This will prompt you to confirm the changes. Type `yes` and press Enter to confirm.
-
-## Clean Up
-
-When you're done with the resources, you can destroy them by running `terraform destroy`. This will prompt you to confirm the changes. Type `yes` and press Enter to confirm.
-
----
+The `terraform.tfstate` and `terraform.tfstate.backup` files contain sensitive data. It's recommended to store the state file in a secure and backed-up location or to use a remote state backend. Always add your `*.tfstate*` files to your `.gitignore` to prevent committing it to version control.
