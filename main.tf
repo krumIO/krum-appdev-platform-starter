@@ -169,7 +169,7 @@ module "nexus" {
   environment = "production"
   // chart version
   nxrm_version      = "58.1.0"
-  iq_server_version = "164.0.0"
+  iq_server_version = "165.0.0"
   // license
   nexus_license_file = var.nexus_license_file_path
   // database details
@@ -234,4 +234,4 @@ module "iq_admin_ingress_proxied" {
     module.nexus
   ]
 }
-##########################################################
+# ##########################################################

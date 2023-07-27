@@ -1,28 +1,3 @@
-// create nexus iq admin password
-resource "random_password" "iq_admin_password" {
-  length           = 16
-  special          = true
-  override_special = "_%@"
-}
-
-// create nexus iq admin password secret
-resource "kubernetes_secret" "iq_admin_password_secret" {
-  metadata {
-    name      = "iq-admin-password-secret"
-    namespace = "nexus"
-  }
-  depends_on = [helm_release.nxrm]
-  data = {
-    password = random_password.iq_admin_password.result
-  }
-}
-
-// output nexus iq admin password
-resource "local_sensitive_file" "iq_admin_password" {
-  content  = random_password.iq_admin_password.result
-  filename = "${var.outputs_path}/iq-admin-password.txt"
-}
-
 // create nexus iq server
 resource "helm_release" "iq_server" {
   name       = "nexus-iq-server"
@@ -115,7 +90,6 @@ configYaml:
   baseUrl: "https://nexus-iq.${var.dns_domain}"
   sonatypeWork: /sonatype-work
   ${var.nexus_license_file != null ? "licenseFile: /etc/nexus-iq-license/license_lic" : ""}
-  initialAdminPassword: ${random_password.iq_admin_password.result}
   features:
     enableUnauthenticatedPages: true
   server:
