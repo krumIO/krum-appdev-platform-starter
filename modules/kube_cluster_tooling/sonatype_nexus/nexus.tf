@@ -2,6 +2,7 @@
 
 // Create random password for postgresql
 resource "random_password" "postgresql_password" {
+  count           = var.environment == "development" ? 1 : 0
   length           = 16
   special          = true
   override_special = "_%@"
@@ -9,7 +10,8 @@ resource "random_password" "postgresql_password" {
 
 // export the password to a file
 resource "local_sensitive_file" "postgresql_password" {
-  content  = random_password.postgresql_password.result
+  count = var.environment == "development" ? 1 : 0
+  content  = random_password.postgresql_password[0].result
   filename = "${var.outputs_path}/postgresql-password.txt"
 }
 
@@ -32,7 +34,7 @@ resource "helm_release" "postgresql" {
 
   set {
     name  = "postgresqlPassword"
-    value = random_password.postgresql_password.result
+    value = random_password.postgresql_password[0].result
   }
 
   set {
@@ -96,7 +98,7 @@ env:
       # ${var.nexus_license_file != null ? "-Dnexus.licenseFile=/etc/nexus-license/license.lic" : ""}
       -Dnexus.datastore.enabled=true
       -Dnexus.datastore.nexus.username=${var.environment == "development" ? var.postgresql_username : var.prod_db_username}
-      -Dnexus.datastore.nexus.password=${var.environment == "development" ? random_password.postgresql_password.result : var.prod_db_password}
+      -Dnexus.datastore.nexus.password=${var.environment == "development" ? random_password.postgresql_password[0].result : var.prod_db_password}
   - name: NEXUS_SECURITY_RANDOMPASSWORD
     value: "true"
 ingress:
@@ -155,7 +157,7 @@ resource "kubernetes_secret" "nxrm_db_secret" {
   depends_on = [helm_release.nxrm]
   data = {
     username = var.environment == "development" ? var.postgresql_username : var.prod_db_username
-    password = var.environment == "development" ? random_password.postgresql_password.result : var.prod_db_password
+    password = var.environment == "development" ? random_password.postgresql_password[0].result : var.prod_db_password
   }
 }
 

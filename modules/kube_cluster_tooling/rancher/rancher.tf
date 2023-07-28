@@ -65,7 +65,7 @@ resource "random_password" "rancher_admin_password" {
 }
 
 resource "local_sensitive_file" "rancher_admin_password_and_url" {
-  content = "Admin Password: ${random_password.rancher_admin_password.result}\nRancher Server URL: ${join(".", ["rancher", "${var.dns_domain}"])}"
+  content = "Admin Password: ${random_password.rancher_admin_password.result}\nRancher Server URL: ${join(".", ["https://rancher", "${var.dns_domain}"])}"
   filename          = "${var.file_output_directory}/rancher-admin-password-and-url.txt"
 }
 
