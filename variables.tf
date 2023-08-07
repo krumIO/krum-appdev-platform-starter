@@ -48,7 +48,7 @@ variable "db_node_count" {
 
 variable "db_firewall_ingress_cidr" {
   description = "CIDR for ingress rules"
-  default     = ["204.116.188.66"]
+  default     = ["0.0.0.0/0"]
 }
 
 variable "kube_config_file" {

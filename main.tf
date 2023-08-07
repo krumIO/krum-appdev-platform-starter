@@ -42,6 +42,7 @@ provider "kubernetes" {
   client_certificate     = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-certificate-data)
   client_key             = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-key-data)
   cluster_ca_certificate = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
+  insecure = false
 }
 
 provider "helm" {
@@ -51,6 +52,7 @@ provider "helm" {
     client_certificate     = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-certificate-data)
     client_key             = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-key-data)
     cluster_ca_certificate = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
+    insecure = false
   }
 }
 
@@ -87,7 +89,7 @@ module "civo_sandbox_cluster" {
 
 module "civo_sandbox_cluster_network" {
   source       = "./modules/civo/civo_network"
-  network_name = "civo_sandbox_cluster-network"
+  network_name = "civo_sandbox_cluster-network-${random_id.suffix.hex}"
 }
 
 #############################################################
@@ -185,7 +187,7 @@ module "nexus" {
   prod_db_host     = module.nxrm_database.dns_endpoint      # existing-db-host
   prod_db_username = "civo"                                 # existing-db-username
   prod_db_password = module.nxrm_database.database_password # existing-db-password
-  prod_db_name     = "nexusdb"                              # existing-db-name
+  prod_db_name     = "${var.db_name}-${random_id.suffix.hex}"                              # existing-db-name
 
   depends_on = [
     module.kube_loadbalancer, //required for both production and development environments
@@ -199,7 +201,7 @@ module "nexus" {
 module "nxrm_database" {
   source = "./modules/civo/civo_db"
 
-  db_name               = var.db_name
+  db_name               = "${var.db_name}-${random_id.suffix.hex}"
   region                = var.civo_region
   node_count            = var.db_node_count
   db_network_id         = module.civo_sandbox_cluster_network.network_id
