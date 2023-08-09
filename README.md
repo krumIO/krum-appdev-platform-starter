@@ -27,7 +27,7 @@ You should create a `terraform.tfvars` file in the same directory as your `.tf` 
 
 ```hcl
 civo_token                 = "your_civo_api_token"
-civo_region                = "PHX1"
+civo_region                = "NYC1"
 email                      = "your_email_for_letsencrypt"
 nexus_license_file_path    = null // "path_to_your_nexus_license_file_or_null"
 db_name                    = "nxrmdb"
