@@ -3,7 +3,7 @@ variable "civo_token" {
 }
 variable "civo_region" {
   description = "Specify Civo region for the deployment"
-  default     = "PHX1"
+  default     = "NYC1"
 }
 
 variable "email" {

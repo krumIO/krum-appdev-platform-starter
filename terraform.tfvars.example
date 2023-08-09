@@ -1,4 +1,4 @@
-civo_region = "PHX1"
+civo_region = "NYC1"
 civo_token = "your_civo_api_token"
 
 
