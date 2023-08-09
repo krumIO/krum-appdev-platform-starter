@@ -206,6 +206,8 @@ module "nxrm_database" {
   node_count            = var.db_node_count
   db_network_id         = module.civo_sandbox_cluster_network.network_id
   firewall_ingress_cidr = var.db_firewall_ingress_cidr
+
+  depends_on = [ module.civo_sandbox_cluster ]
 }
 
 // Local file to store database credentials
