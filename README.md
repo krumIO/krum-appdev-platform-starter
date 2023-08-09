@@ -52,7 +52,6 @@ db_node_count              = 1
     cd ./krum-appdev-platform-starter
     ```
 
-    Replace `[project-directory]` with the name of your project directory.
 
 3. **Initialize Terraform**
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source kubeconfig
-SOURCE_KUBECONFIG="./artifacts/output_files/kubeconfig"
+SOURCE_KUBECONFIG="./artifacts/output_files/kubeconfig.yaml"
 # Destination kubeconfig
 DEST_KUBECONFIG="${HOME}/.kube/config"
 
