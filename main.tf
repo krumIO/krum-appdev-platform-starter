@@ -42,7 +42,7 @@ provider "kubernetes" {
   client_certificate     = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-certificate-data)
   client_key             = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-key-data)
   cluster_ca_certificate = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
-  insecure = false
+  insecure               = false
 }
 
 provider "helm" {
@@ -52,7 +52,7 @@ provider "helm" {
     client_certificate     = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-certificate-data)
     client_key             = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-key-data)
     cluster_ca_certificate = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
-    insecure = false
+    insecure               = false
   }
 }
 
@@ -62,6 +62,7 @@ provider "kubectl" {
   client_certificate     = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-certificate-data)
   client_key             = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).users[0].user.client-key-data)
   cluster_ca_certificate = base64decode(yamldecode(module.civo_sandbox_cluster.kubeconfig).clusters[0].cluster.certificate-authority-data)
+  load_config_file       = false
 }
 
 // Use a random suffix to ensure the cluster name is unique
@@ -81,7 +82,7 @@ module "civo_sandbox_cluster" {
   network_id              = module.civo_sandbox_cluster_network.network_id
   node_pool_name          = "sandbox-pool-${random_id.suffix.hex}"
   node_count              = 3
-  node_size               = "g4s.kube.medium"
+  node_size               = "g4s.kube.large"
   applications            = null
 
   depends_on = [module.civo_sandbox_cluster_network]
@@ -103,7 +104,8 @@ module "kube_loadbalancer" {
   // Email for letsencrypt. Supplied in terraform.tfvars
   email = var.email
   // Chart versions
-  traefik_version = "23.1.0"
+  traefik_chart_version      = "24.0.0"
+  cert_manager_chart_version = "1.12.3"
 
   depends_on = [module.civo_sandbox_cluster,
   ]
@@ -134,9 +136,9 @@ module "argo" {
 
 
   // chart versions
-  argo_cd_version        = "5.38.0"
-  argo_workflows_version = "0.30.0"
-  argo_events_version    = "2.4.0"
+  argo_cd_chart_version        = "5.43.4"
+  argo_workflows_chart_version = "0.33.1"
+  argo_events_chart_version    = "2.4.0"
   // ingress details
   email              = var.email
   dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
@@ -184,10 +186,10 @@ module "nexus" {
   ingress_class_name = "traefik"
 
   // Only required for the production environment
-  prod_db_host     = module.nxrm_database.dns_endpoint      # existing-db-host
-  prod_db_username = "civo"                                 # existing-db-username
-  prod_db_password = module.nxrm_database.database_password # existing-db-password
-  prod_db_name     = "${var.db_name}-${random_id.suffix.hex}"                              # existing-db-name
+  prod_db_host     = module.nxrm_database.dns_endpoint        # existing-db-host
+  prod_db_username = "civo"                                   # existing-db-username
+  prod_db_password = module.nxrm_database.database_password   # existing-db-password
+  prod_db_name     = "${var.db_name}-${random_id.suffix.hex}" # existing-db-name
 
   depends_on = [
     module.kube_loadbalancer, //required for both production and development environments
@@ -207,7 +209,7 @@ module "nxrm_database" {
   db_network_id         = module.civo_sandbox_cluster_network.network_id
   firewall_ingress_cidr = var.db_firewall_ingress_cidr
 
-  depends_on = [ module.civo_sandbox_cluster ]
+  depends_on = [module.civo_sandbox_cluster]
 }
 
 // Local file to store database credentials
@@ -238,4 +240,48 @@ module "iq_admin_ingress_proxied" {
     module.nexus
   ]
 }
-# ##########################################################
+
+
+##########################################################
+// Neuvector Helm Install
+module "neuvector" {
+  source = "./modules/kube_cluster_tooling/neuvector"
+
+  // Chart versions
+  neuvector_chart_version = "2.6.1"
+
+  // Additional Config and Options
+  rancher_installed = true
+  k3s_enabled       = true
+  cluster_name      = module.civo_sandbox_cluster.cluster_name
+
+  // output_files directory
+  file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
+
+
+  // Ingress details
+  ingress_enabled         = false
+  dns_domain              = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name      = "traefik"
+  tls_cluster_issuer_name = "letsencrypt-production"
+
+  depends_on = [module.kube_loadbalancer,
+    module.rancher,
+  ]
+}
+
+module "coder" {
+  source = "./modules/kube_cluster_tooling/coder"
+
+  // Chart versions
+  coder_chart_version = "2.1.0"
+
+  // Ingress details
+  dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name = "traefik"
+
+  file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
+
+  depends_on = [module.kube_loadbalancer,
+  ]
+}
