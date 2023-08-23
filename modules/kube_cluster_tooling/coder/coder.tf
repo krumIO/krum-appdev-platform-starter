@@ -71,6 +71,7 @@ resource "helm_release" "postgresql" {
     name  = "auth.database"
     value = "coder"
   }
+  depends_on = [ kubernetes_namespace.coder_development_env, random_password.postgresql_password ]
 }
 
 // Postgresql Service Internal URL
@@ -99,6 +100,8 @@ type: Opaque
 stringData:
   url: "postgres://coder:${random_password.postgresql_password[0].result}@${helm_release.postgresql[0].name}/coder?sslmode=disable"
 YAML
+  
+    depends_on = [helm_release.postgresql, random_password.postgresql_password]
 }
 
 resource "helm_release" "coder" {
@@ -130,21 +133,21 @@ coder:
   serviceAccount:
     enableDeployments: true
 
-  tls:
-    # coder.tls.secretNames -- A list of TLS server certificate secrets to mount
-    # into the Coder pod. The secrets should exist in the same namespace as the
-    # Helm deployment and should be of type "kubernetes.io/tls". The secrets
-    # will be automatically mounted into the pod if specified, and the correct
-    # "CODER_TLS_*" environment variables will be set for you.
-    secretNames: ["coder-tls-cert"]
+  # tls:
+  #   # coder.tls.secretNames -- A list of TLS server certificate secrets to mount
+  #   # into the Coder pod. The secrets should exist in the same namespace as the
+  #   # Helm deployment and should be of type "kubernetes.io/tls". The secrets
+  #   # will be automatically mounted into the pod if specified, and the correct
+  #   # "CODER_TLS_*" environment variables will be set for you.
+  #   secretNames: ["coder-tls-cert"]
   
 #   ingress:
 #     enable: false
 #     ingressClassName: "traefik"
-#     host: "coder.212.2.247.221.sslip.io"
+#     host: "coder.${var.dns_domain}"
 #     port: 80
 #     annotations: 
-#       cert-manager.io/cluster-issuer: "letsencrypt-staging"
+#       cert-manager.io/cluster-issuer: "letsencrypt-production"
 #     tls:
 #       enable: true
 #       secretName: "coder-tls-cert"
@@ -155,7 +158,8 @@ EOT
 
   depends_on = [
     helm_release.postgresql,
-    kubectl_manifest.coder-db-url
+    kubectl_manifest.coder-db-url,
+    kubernetes_namespace.coder_development_env,
   ]
 }
 
@@ -169,7 +173,6 @@ metadata:
   name: coder
   namespace: coder
   annotations:
-    kubernetes.io/ingress.class: "traefik"
     cert-manager.io/cluster-issuer: "letsencrypt-production"
 spec:
   rules:
@@ -189,6 +192,8 @@ spec:
     - "coder.${var.dns_domain}"
     secretName: coder-tls-cert
 YAML
+  
+    depends_on = [helm_release.coder]
 }
 
 resource "kubectl_manifest" "coder-service-account" {
@@ -199,6 +204,7 @@ kind: ServiceAccount
 metadata:
   name: coder
 YAML
+  depends_on = [kubernetes_namespace.coder_development_env]
 }
 
 resource "kubectl_manifest" "coder-role-binding" {
@@ -216,6 +222,8 @@ roleRef:
   name: coder
   apiGroup: rbac.authorization.k8s.io
 YAML
+  
+    depends_on = [kubernetes_namespace.coder_development_env, kubectl_manifest.coder-role]
 }
 
 resource "kubectl_manifest" "coder-role" {
@@ -233,6 +241,8 @@ rules:
   resources: ["persistentvolumeclaims"]
   verbs: ["get", "list", "watch", "create", "delete"]
 YAML
+    
+      depends_on = [kubernetes_namespace.coder_development_env]
 }
 
 resource "kubectl_manifest" "coder-pvc-manager-role" {
@@ -308,6 +318,7 @@ resource "kubernetes_role_binding" "deployment_creator_binding" {
     name      = "coder"
     namespace = "coder"
   }
+  depends_on = [kubernetes_namespace.coder_development_env, kubernetes_role.deployment_creator]
 }
 
 
