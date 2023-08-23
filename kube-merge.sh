@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Prompt explaining the script's action
+echo "This script will merge kubeconfig from a source file into your default kubeconfig file."
+echo "If the default kubeconfig already exists, it will be backed up with a timestamp."
+echo "Are you sure you want to proceed? (yes/no)"
+
+# Read the user's input for confirmation
+read confirmation
+
+# Check if the user's input is "yes" to proceed
+if [ "${confirmation}" != "yes" ]; then
+    echo "Aborted."
+    exit 1
+fi
+
 # Source kubeconfig
 SOURCE_KUBECONFIG="./artifacts/output_files/kubeconfig.yaml"
 # Destination kubeconfig

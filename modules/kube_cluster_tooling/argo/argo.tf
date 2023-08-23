@@ -38,7 +38,7 @@ variable "ingress_class_name" {
   type        = string
 }
 
-variable "argo_cd_version" {
+variable "argo_cd_chart_version" {
   description = "The version of the Argo CD to be deployed."
   type        = string
 }
@@ -48,7 +48,7 @@ variable "email" {
   type        = string
 }
 
-variable "argo_workflows_version" {
+variable "argo_workflows_chart_version" {
   description = "The version of the Argo Workflows to be deployed."
   type        = string
 }
@@ -59,7 +59,7 @@ variable "argo_workflows_ingress_enabled" {
   default     = false
 }
 
-variable "argo_events_version" {
+variable "argo_events_chart_version" {
   description = "The version of the Argo Events to be deployed."
   type        = string
 }
@@ -80,7 +80,7 @@ resource "helm_release" "argo_cd" {
   name       = "argo-cd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
-  version    = var.argo_cd_version
+  version    = var.argo_cd_chart_version
 
   namespace        = "argocd"
   create_namespace = true
@@ -130,7 +130,7 @@ resource "helm_release" "argo_workflows" {
   name       = "argo-workflows"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-workflows"
-  version    = var.argo_workflows_version
+  version    = var.argo_workflows_chart_version
 
   namespace        = "argocd"
   create_namespace = false
@@ -167,7 +167,7 @@ resource "helm_release" "argo_events" {
   name       = "argo-events"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-events"
-  version    = var.argo_events_version
+  version    = var.argo_events_chart_version
 
   namespace        = "argocd"
   create_namespace = false

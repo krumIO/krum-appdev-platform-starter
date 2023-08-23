@@ -12,7 +12,7 @@ resource "random_password" "postgresql_password" {
 resource "local_sensitive_file" "postgresql_password" {
   count = var.environment == "development" ? 1 : 0
   content  = random_password.postgresql_password[0].result
-  filename = "${var.outputs_path}/postgresql-password.txt"
+  filename = "${var.outputs_path}/nexus-postgresql-password.txt"
 }
 
 // Dev Database Container

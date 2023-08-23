@@ -29,7 +29,7 @@ variable "email" {
   type        = string
 }
 
-variable "traefik_version" {
+variable "traefik_chart_version" {
   description = "Version of Traefik Helm chart to be deployed"
   type        = string
 }
@@ -46,13 +46,24 @@ variable "kube_config_file" {
   type        = string
 }
 
+variable "ingress_class_name" {
+  description = "The Ingress Class Name."
+  type        = string
+  default    = "traefik"
+}
+
+variable "cert_manager_chart_version" {
+  description = "Version of cert-manager Helm chart to be deployed"
+  type        = string
+}
+
 ##############################################
 ## Cert Manager ##
 resource "helm_release" "cert-manager" {
   name       = "cert-manager"
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
-  version    = "1.12.1"
+  version    = var.cert_manager_chart_version
 
   namespace        = "cert-manager"
   create_namespace = true
@@ -83,7 +94,7 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: nginx
+          class: ${var.ingress_class_name}
 YAML
   depends_on = [helm_release.cert-manager]
 }
@@ -104,7 +115,7 @@ spec:
     solvers:
     - http01:
         ingress:
-          class: nginx
+          class: ${var.ingress_class_name}
 YAML
   depends_on = [helm_release.cert-manager]
 }
@@ -115,7 +126,7 @@ resource "helm_release" "traefik_ingress_controller" {
   name             = "traefik"
   repository       = "https://helm.traefik.io/traefik"
   chart            = "traefik"
-  version          = var.traefik_version
+  version          = var.traefik_chart_version
   namespace        = "traefik"
   create_namespace = true
 
@@ -141,6 +152,10 @@ providers:
     namespaces: []
     publishedService:
       enabled: true
+persistence:
+  enabled: true
+  path: /data
+  size: 1Gi
 ingressRoute:
   dashboard:
     entryPoints:

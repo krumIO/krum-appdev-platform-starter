@@ -86,28 +86,8 @@ resource "helm_release" "rancher" {
     value = "rancher.${var.dns_domain}"
   }
   set {
-    name  = "ingress.ingressClassName"
+    name = "letsEncrypt.ingress.class"
     value = "${var.ingress_class_name}"
-  }
-  set {
-    name  = "ingress.tls.source"
-    value = "cert-manager"
-  }
-  set {
-    name  = "ingress.tls.certManager.issuerName"
-    value = "letsencrypt-production"
-  }
-  set {
-    name  = "ingress.tls.secretName"
-    value = "tls-rancher-cert"
-  }
-  set {
-    name  = "ingress.tls.hosts"
-    value = "rancher.${var.dns_domain}"
-  }
-  set {
-    name  = "ingress.annotations.cert-manager\\.io/cluster-issuer"
-    value = "letsencrypt-production"
   }
   set {
     name  = "bootstrapPassword"
@@ -125,7 +105,21 @@ resource "helm_release" "rancher" {
     name  = "letsEncrypt.email"
     value = var.email
   }
+  set { 
+    name = "bootstrapPassword"
+    value = "${random_password.rancher_admin_password.result}"
+  }
 
 depends_on = [random_password.rancher_admin_password]
 
+}
+
+// output rancher url
+output "rancher_url" {
+  value = "https://rancher.${var.dns_domain}"
+}
+
+// output rancher admin password
+output "rancher_admin_password" {
+  value = random_password.rancher_admin_password.result
 }

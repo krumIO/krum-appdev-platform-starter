@@ -100,3 +100,9 @@ output "api_endpoint" {
   description = "API endpoint for the created cluster"
   value       = civo_kubernetes_cluster.cluster.api_endpoint
 }
+
+// output cluster name
+output "cluster_name" {
+  description = "Cluster name"
+  value       = civo_kubernetes_cluster.cluster.name
+}
