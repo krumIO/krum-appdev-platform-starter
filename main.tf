@@ -270,18 +270,18 @@ module "neuvector" {
   ]
 }
 
-module "coder" {
-  source = "./modules/kube_cluster_tooling/coder"
+# module "coder" {
+#   source = "./modules/kube_cluster_tooling/coder"
 
-  // Chart versions
-  coder_chart_version = "2.1.0"
+#   // Chart versions
+#   coder_chart_version = "2.1.0"
 
-  // Ingress details
-  dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
-  ingress_class_name = "traefik"
+#   // Ingress details
+#   dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+#   ingress_class_name = "traefik"
 
-  file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
+#   file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
 
-  depends_on = [module.kube_loadbalancer,
-  ]
-}
+#   depends_on = [module.kube_loadbalancer,
+#   ]
+# }
