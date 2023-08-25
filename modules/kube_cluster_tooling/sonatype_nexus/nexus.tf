@@ -2,7 +2,7 @@
 
 // Create random password for postgresql
 resource "random_password" "postgresql_password" {
-  count           = var.environment == "development" ? 1 : 0
+  count            = var.environment == "development" ? 1 : 0
   length           = 16
   special          = true
   override_special = "_%@"
@@ -10,7 +10,7 @@ resource "random_password" "postgresql_password" {
 
 // export the password to a file
 resource "local_sensitive_file" "postgresql_password" {
-  count = var.environment == "development" ? 1 : 0
+  count    = var.environment == "development" ? 1 : 0
   content  = random_password.postgresql_password[0].result
   filename = "${var.outputs_path}/nexus-postgresql-password.txt"
 }
@@ -69,7 +69,7 @@ resource "helm_release" "nxrm" {
   name       = "nxrm"
   repository = "https://sonatype.github.io/helm3-charts"
   chart      = "nexus-repository-manager"
-  version    = var.nxrm_version
+  version    = var.nxrm_chart_version
 
   namespace        = "nexus"
   create_namespace = true
@@ -79,6 +79,26 @@ resource "helm_release" "nxrm" {
   set {
     name  = "nexus.datastore.nexus.jdbcUrl"
     value = "jdbc:postgresql://${var.environment == "development" ? "${helm_release.postgresql[0].name}-postgresql" : var.prod_db_host}:5432/${var.environment == "development" ? var.db_name : var.prod_db_name}"
+  }
+
+  set {
+    name  = "nexus.docker.enabled"
+    value = var.nxrm_docker_registry_enabled
+  }
+
+  set {
+    name  = "nexus.docker.registries[0].host"
+    value = "docker.${var.dns_domain}"
+  }
+
+  set {
+    name  = "nexus.docker.registries[0].port"
+    value = "9090"
+  }
+
+  set {
+    name  = "nexus.docker.registries[0].secretName"
+    value = "example-docker-registry"
   }
 
 }
@@ -105,7 +125,7 @@ ingress:
   enabled: true
   ingressClassName: ${var.ingress_class_name}
   annotations:
-    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt-production
+    cert-manager.io/cluster-issuer: letsencrypt-production
     traefik.ingress.kubernetes.io/rewrite-target: "0"
   hostPath: /
   hostRepo: "nexus.${var.dns_domain}"
@@ -161,3 +181,11 @@ resource "kubernetes_secret" "nxrm_db_secret" {
   }
 }
 
+// output helm repo url and name
+output "helm_repo_url" {
+  value = helm_release.nxrm.repository
+}
+
+output "helm_repo_name" {
+  value = helm_release.nxrm.name
+}

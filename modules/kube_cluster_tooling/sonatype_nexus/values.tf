@@ -3,7 +3,7 @@ variable "environment" {
   type        = string
 }
 
-variable "nxrm_version" {
+variable "nxrm_chart_version" {
   description = "The version of the Sonatype Nexus to be deployed."
   type        = string
 }
@@ -69,7 +69,13 @@ variable "prod_db_name" {
   default     = ""
 }
 
-variable "iq_server_version" {
+variable "iq_server_chart_version" {
   description = "The version of the Sonatype Nexus IQ Server Chart to be deployed."
   type        = string
+}
+
+variable "nxrm_docker_registry_enabled" {
+  description = "Whether to enable the Docker Registry for the Sonatype Nexus."
+  type        = bool
+  default     = false
 }

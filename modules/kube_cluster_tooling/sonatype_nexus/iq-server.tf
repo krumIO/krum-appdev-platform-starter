@@ -3,7 +3,7 @@ resource "helm_release" "iq_server" {
   name       = "nexus-iq-server"
   repository = "https://sonatype.github.io/helm3-charts/"
   chart      = "nexus-iq-server"
-  version    = var.iq_server_version
+  version    = var.iq_server_chart_version
 
   namespace        = "nexus"
   create_namespace = true
@@ -84,7 +84,7 @@ locals {
   iq_server_config = <<-YAML
 ingress:
   annotations:
-    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt-production
+    cert-manager.io/cluster-issuer: letsencrypt-production
     traefik.ingress.kubernetes.io/rewrite-target: "0"
 configYaml:
   baseUrl: "https://nexus-iq.${var.dns_domain}"
