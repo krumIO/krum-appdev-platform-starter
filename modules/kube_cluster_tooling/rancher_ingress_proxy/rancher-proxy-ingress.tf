@@ -39,7 +39,7 @@ metadata:
   name: ${var.ingress_display_name}
   namespace: "cattle-system"
   annotations:
-    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt-production
+    cert-manager.io/cluster-issuer: letsencrypt-production
     traefik.ingress.kubernetes.io/rewrite-target: "0"
 spec:
     ingressClassName: ${var.ingress_class_name}

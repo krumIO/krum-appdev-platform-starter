@@ -114,7 +114,7 @@ server:
       - argocd.${var.dns_domain}
     servicePort: 80
     annotations:
-      traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt-production
+      cert-manager.io/cluster-issuer: letsencrypt-production
       kubernetes.io/ssl-passthrough: "true"
     tls:
       - hosts:
@@ -149,7 +149,7 @@ server:
   - --auth-mode=server
   ingress:
     annotations:
-      traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt-production
+      cert-manager.io/cluster-issuer: letsencrypt-production
       kubernetes.io/ssl-passthrough: "true"
     enabled: ${var.argo_workflows_ingress_enabled}
     hosts:
@@ -213,4 +213,13 @@ YAML
   depends_on = [
     helm_release.argo_events,
   ]
+}
+
+// output helm repo url and name
+output "helm_repo_url" {
+  value = helm_release.argo_cd.repository
+}
+
+output "helm_repo_name" {
+  value = helm_release.argo_cd.chart
 }

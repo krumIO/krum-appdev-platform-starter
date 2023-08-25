@@ -123,3 +123,12 @@ output "rancher_url" {
 output "rancher_admin_password" {
   value = random_password.rancher_admin_password.result
 }
+
+// output helm repo url and name
+output "helm_repo_url" {
+  value = helm_release.rancher.repository
+}
+
+output "helm_repo_name" {
+  value = helm_release.rancher.name
+}

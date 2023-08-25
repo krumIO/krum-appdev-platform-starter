@@ -278,3 +278,20 @@ output "load_balancer_ip" {
   value       = data.kubernetes_service.traefik.status[0].load_balancer.0.ingress[0].ip
   description = "The load balancer IP address."
 }
+
+// output helm repo url and name
+output "helm_repo_url_traefik" {
+  value = helm_release.traefik_ingress_controller.repository
+}
+
+output "helm_repo_name_traefik" {
+  value = helm_release.traefik_ingress_controller.name
+}
+
+output "helm_repo_url_cert_manager" {
+  value = helm_release.cert-manager.repository
+}
+
+output "helm_repo_name_cert_manager" {
+  value = helm_release.cert-manager.name
+}

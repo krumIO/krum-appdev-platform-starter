@@ -60,3 +60,8 @@ variable "nexus_license_file_path" {
   description = "The path to the Sonatype Nexus license file."
   type        = string
 }
+
+variable "rancher_installed" {
+  description = "rancher installed"
+  default     = true
+}
