@@ -172,10 +172,12 @@ module "nexus" {
 
   environment = "production"
   // chart version
-  nxrm_version      = "58.1.0"
-  iq_server_version = "165.0.0"
+  nxrm_chart_version = "58.1.0"
+  iq_server_chart_version  = "165.0.0"
   // license
   nexus_license_file = var.nexus_license_file_path
+  // enable self-hosted docker registry with nxrm
+  nxrm_docker_registry_enabled = true
   // database details
   db_name             = "nexusdb"
   postgresql_version  = "12.6.5"
@@ -251,16 +253,22 @@ module "neuvector" {
   neuvector_chart_version = "2.6.1"
 
   // Additional Config and Options
-  rancher_installed = true
-  k3s_enabled       = true
-  cluster_name      = module.civo_sandbox_cluster.cluster_name
+  rancher_installed = true // sets ingress to false if rancher is installed and enables rancher sso
+
+  // Set Container Runtime
+  k3s_enabled        = true  // sets containerd runtime path for k3s if true
+  docker_enabled     = false // sets docker runtime path if true
+  containerd_enabled = false // sets containerd runtime path if true
+  crio_enabled       = false // sets crio runtime path if true
+
+  cluster_name = module.civo_sandbox_cluster.cluster_name
 
   // output_files directory
   file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
 
 
   // Ingress details
-  ingress_enabled         = false
+  // If rancher_installed is true, then the ingress will be disabled and access will be through rancher
   dns_domain              = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
   ingress_class_name      = "traefik"
   tls_cluster_issuer_name = "letsencrypt-production"
@@ -270,18 +278,19 @@ module "neuvector" {
   ]
 }
 
-# module "coder" {
-#   source = "./modules/kube_cluster_tooling/coder"
+module "coder" {
+  source        = "./modules/kube_cluster_tooling/coder"
+  coder_enabled = false // if true, coder helm chart is installed
 
-#   // Chart versions
-#   coder_chart_version = "2.1.0"
+  // Chart versions
+  coder_chart_version = "2.1.0"
 
-#   // Ingress details
-#   dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
-#   ingress_class_name = "traefik"
+  // Ingress details
+  dns_domain         = join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"])
+  ingress_class_name = "traefik"
 
-#   file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
+  file_output_directory = "./artifacts/output_files" // This is where the random password will be stored. No need to change this for workshop.
 
-#   depends_on = [module.kube_loadbalancer,
-#   ]
-# }
+  depends_on = [module.kube_loadbalancer,
+  ]
+}
