@@ -9,14 +9,14 @@ terraform {
 
 // Create a repository manifest for Rancher to manage life cycle via rancher interface
 resource "kubectl_manifest" "rancher_repo_manifest" {
-  count   = var.rancher_installed ? 1 : 0
+  count   = var.module_enabled && var.rancher_installed ? 1 : 0
   yaml_body = <<YAML
 apiVersion: catalog.cattle.io/v1
 kind: ClusterRepo
 metadata:
-  name: ${var.repo_name}
+  name: ${var.repo_name != null ? var.repo_name : ""}"
 spec:
-    url: ${var.repo_url}
+    url: ${var.repo_url != null ? var.repo_url : ""}"
 
 YAML
 }
@@ -38,3 +38,8 @@ variable "rancher_installed" {
   default     = false
 }
 
+variable "module_enabled" {
+  description = "Is module enabled"
+  type        = bool
+  default     = false
+}

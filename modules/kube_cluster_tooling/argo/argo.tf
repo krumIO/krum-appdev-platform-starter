@@ -69,7 +69,11 @@ variable "kube_config_file" {
   type        = string
 }
 
-
+variable "module_enabled" {
+  description = "Whether to enable the module."
+  type        = bool
+  default     = true
+}
 
 
 ##############################################
@@ -77,6 +81,7 @@ variable "kube_config_file" {
 
 // argo-cd
 resource "helm_release" "argo_cd" {
+  count     = var.module_enabled ? 1 : 0
   name       = "argo-cd"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-cd"
@@ -111,14 +116,14 @@ server:
   ingress:
     enabled: true
     hosts:
-      - argocd.${var.dns_domain}
+      - "argocd.${var.dns_domain != null ? var.dns_domain : ""}"
     servicePort: 80
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-production
       kubernetes.io/ssl-passthrough: "true"
     tls:
       - hosts:
-        - argocd.${var.dns_domain}
+        - "argocd.${var.dns_domain != null ? var.dns_domain : ""}"
         secretName: "argocd-secret"
 EOF
   ]
@@ -127,6 +132,7 @@ EOF
 
 // argo-workflows
 resource "helm_release" "argo_workflows" {
+  count     = var.module_enabled ? 1 : 0
   name       = "argo-workflows"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-workflows"
@@ -153,17 +159,18 @@ server:
       kubernetes.io/ssl-passthrough: "true"
     enabled: ${var.argo_workflows_ingress_enabled}
     hosts:
-    - argo-workflows.${var.dns_domain}
+    - "argo-workflows.${var.dns_domain != null ? var.dns_domain : ""}"
     servicePort: 80
     tls:
     - hosts:
-      - argo-workflows.${var.dns_domain}
+      - "argo-workflows.${var.dns_domain != null ? var.dns_domain : ""}"
       secretName: "tls-argo-workflows-cert"
 YAML
 }
 
 // argo-events
 resource "helm_release" "argo_events" {
+  count    = var.module_enabled ? 1 : 0
   name       = "argo-events"
   repository = "https://argoproj.github.io/argo-helm"
   chart      = "argo-events"
@@ -184,6 +191,7 @@ resource "helm_release" "argo_events" {
 }
 
 resource "kubectl_manifest" "argo_eventbus" {
+  count = var.module_enabled ? 1 : 0
   yaml_body = <<YAML
 apiVersion: argoproj.io/v1alpha1
 kind: EventBus
@@ -217,9 +225,9 @@ YAML
 
 // output helm repo url and name
 output "helm_repo_url" {
-  value = helm_release.argo_cd.repository
+  value = var.module_enabled ? helm_release.argo_cd[0].repository : null
 }
 
 output "helm_repo_name" {
-  value = helm_release.argo_cd.chart
+  value = var.module_enabled ? helm_release.argo_cd[0].chart : null
 }

@@ -1,27 +1,52 @@
-// Create random password for neuvector admin user
-resource "random_password" "neuvector_admin_password" {
-  length           = 16
-  special          = false
-  override_special = "_%@"
+terraform {
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.22.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "2.10.1"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "1.14.0"
+    }
+    local = {
+      source  = "hashicorp/local"
+      version = "2.4.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.5.1"
+    }
+  }
 }
 
-// Output random password for neuvector admin and neuvector url to a file
+// Create random password for neuvector admin user
+resource "random_password" "neuvector_admin_password" {
+  count              = var.module_enabled ? 1 : 0
+  length             = 16
+  special            = false
+  override_special   = "_%@"
+}
+
 resource "local_file" "neuvector_admin_password_and_url" {
+  count              = var.module_enabled ? 1 : 0
   content = <<EOT
-neuvector_admin_password = "${random_password.neuvector_admin_password.result}"
+neuvector_admin_password = "${random_password.neuvector_admin_password[0].result}"
 neuvector_url = "https://neuvector.${var.dns_domain}"
 EOT
   filename          = "${var.file_output_directory}/neuvector-admin-password-and-url.txt"
 }
 
-
 resource "helm_release" "neuvector" {
-
-  name             = "neuvector"
-  chart            = "https://neuvector.github.io/neuvector-helm/core-${var.neuvector_chart_version}.tgz"
-  namespace        = "cattle-neuvector-system"
-  create_namespace = true
-  wait             = true
+  count              = var.module_enabled ? 1 : 0
+  name               = "neuvector"
+  chart              = "https://neuvector.github.io/neuvector-helm/core-${var.neuvector_chart_version}.tgz"
+  namespace          = "cattle-neuvector-system"
+  create_namespace   = true
+  wait               = true
 
   values = [
     <<EOT
@@ -48,7 +73,7 @@ controller:
         - Fullname: admin
           Username: admin
           Role: admin
-          Password: ${random_password.neuvector_admin_password.result}
+          Password: ${random_password.neuvector_admin_password[0].result}
 pvc:
   enabled: true
   capacity: 10Gi
@@ -146,11 +171,17 @@ variable "crio_enabled" {
   description = "value to enable crio runtime"
 }
 
+variable "module_enabled" {
+  default = true
+  type = bool
+  description = "Enable or disable the deployment of the module"
+}
+
 // output helm repo url and name
 output "helm_repo_url" {
-  value = helm_release.neuvector.repository
+  value = var.module_enabled ? helm_release.neuvector[0].repository : ""
 }
 
 output "helm_repo_name" {
-  value = helm_release.neuvector.name
+  value = var.module_enabled ? helm_release.neuvector[0].name : ""
 }

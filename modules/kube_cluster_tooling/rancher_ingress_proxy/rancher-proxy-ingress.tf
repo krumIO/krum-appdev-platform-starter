@@ -27,12 +27,13 @@ terraform {
 
 //ingress
 resource "kubectl_manifest" "ingress" {
+  count = var.module_enabled ? 1 : 0
 
-    yaml_body = local.ingress_config
+  yaml_body = local.ingress_config
 }
 
 locals {
-    ingress_config = <<-EOF
+  ingress_config = <<-EOF
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -44,10 +45,10 @@ metadata:
 spec:
     ingressClassName: ${var.ingress_class_name}
     rules:
-    - host: rancher.${var.dns_domain}
+    - host: "rancher.${var.dns_domain != null ? var.dns_domain : ""}"
       http:
         paths:
-        - path: "/api/v1/namespaces/${var.namespace}/services/${var.protocol}:${var.service_name}:${var.service_port}/proxy/"
+        - path: "/api/v1/namespaces/${var.namespace != null ? var.namespace : ""}/services/${var.protocol != null ? var.protocol : ""}:${var.service_name != null ? var.service_name : ""}:${var.service_port != null ? var.service_port : ""}/proxy/"
           pathType: Prefix
           backend:
             service:
@@ -56,7 +57,7 @@ spec:
                 number: 80
     tls:
     - hosts:
-      - rancher.${var.dns_domain}
+      - "rancher.${var.dns_domain != null ? var.dns_domain : ""}"
       secretName: ${var.tls_secret_name}
 EOF
 }
@@ -101,4 +102,9 @@ variable "ingress_display_name" {
 variable "tls_secret_name" {
   type    = string
   default = "tls-rancher-cert"
+}
+
+variable "module_enabled" {
+  type    = bool
+  default = true
 }

@@ -65,3 +65,60 @@ variable "rancher_installed" {
   description = "rancher installed"
   default     = true
 }
+
+variable "artifact_output_directory" {
+  description = "The directory where the output files will be stored."
+  default     = "./artifacts/output_files"
+}
+
+//enable modules
+####################
+variable "proxy_argo_workflows_via_rancher" {
+  description = "proxy argo workflows via rancher"
+  default     = false
+}
+
+variable "enable_nexus_rm" {
+  description = "enable nexus rm"
+  default     = false
+}
+
+variable "enable_nexus_iq" {
+  description = "enable nexus iq"
+  default     = false
+}
+
+variable "enable_managed_civo_db" {
+  description = "enable managed civo db"
+  default     = false
+}
+
+variable "proxy_nexus_iq_via_rancher" {
+  description = "proxy nexus iq via rancher"
+  default     = false
+}
+
+variable "enable_neuvector" {
+  description = "enable neuvector"
+  default     = false
+}
+
+variable "enable_coder" {
+  description = "enable coder"
+  default     = false
+}
+
+variable "enable_argo_suite" {
+  description = "enable argo suite"
+  default     = false
+}
+
+variable "enable_rancher" {
+  description = "enable rancher"
+  default     = false
+}
+
+variable "enable_kube_loadbalancer" {
+  description = "enable kube loadbalancer"
+  default     = false
+}

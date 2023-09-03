@@ -57,21 +57,30 @@ variable "file_output_directory" {
   type        = string
 }
 
+variable "enable_module" {
+  description = "Enable module"
+  type        = bool
+  default     = true
+}
+
 // Generate a random password for rancher admin user auth and traefik dashboard basic-auth
 resource "random_password" "rancher_admin_password" {
+  count            = var.enable_module ? 1 : 0
   length           = 16
   special          = true
   override_special = "_%@"
 }
 
 resource "local_sensitive_file" "rancher_admin_password_and_url" {
-  content = "Admin Password: ${random_password.rancher_admin_password.result}\nRancher Server URL: ${join(".", ["https://rancher", "${var.dns_domain}"])}"
-  filename          = "${var.file_output_directory}/rancher-admin-password-and-url.txt"
+  count    = var.enable_module ? 1 : 0
+  content  = "Admin Password: ${random_password.rancher_admin_password[0].result}\nRancher Server URL: rancher.${var.dns_domain != null ? var.dns_domain : ""}"
+  filename = "${var.file_output_directory}/rancher-admin-password-and-url.txt"
 }
 
 ###############################################
 ## Rancher ##
 resource "helm_release" "rancher" {
+  count      = var.enable_module ? 1 : 0
   name       = "rancher"
   repository = "https://releases.rancher.com/server-charts/stable"
   chart      = "rancher"
@@ -83,15 +92,15 @@ resource "helm_release" "rancher" {
 
   set {
     name  = "hostname"
-    value = "rancher.${var.dns_domain}"
+    value = "rancher.${var.dns_domain != null ? var.dns_domain : ""}"
   }
   set {
-    name = "letsEncrypt.ingress.class"
-    value = "${var.ingress_class_name}"
+    name  = "letsEncrypt.ingress.class"
+    value = var.ingress_class_name
   }
   set {
     name  = "bootstrapPassword"
-    value = "${random_password.rancher_admin_password.result}"
+    value = random_password.rancher_admin_password[0].result
   }
   set {
     name  = "replicas"
@@ -105,30 +114,30 @@ resource "helm_release" "rancher" {
     name  = "letsEncrypt.email"
     value = var.email
   }
-  set { 
-    name = "bootstrapPassword"
-    value = "${random_password.rancher_admin_password.result}"
+  set {
+    name  = "bootstrapPassword"
+    value = random_password.rancher_admin_password[0].result
   }
 
-depends_on = [random_password.rancher_admin_password]
+  depends_on = [random_password.rancher_admin_password]
 
 }
 
 // output rancher url
 output "rancher_url" {
-  value = "https://rancher.${var.dns_domain}"
+  value = "https://rancher.${var.dns_domain != null ? var.dns_domain : ""}"
 }
 
 // output rancher admin password
 output "rancher_admin_password" {
-  value = random_password.rancher_admin_password.result
+  value = var.enable_module ? random_password.rancher_admin_password[0].result : null
 }
 
 // output helm repo url and name
 output "helm_repo_url" {
-  value = helm_release.rancher.repository
+  value = var.enable_module ? helm_release.rancher[0].repository : null
 }
 
 output "helm_repo_name" {
-  value = helm_release.rancher.name
+  value = var.enable_module ? helm_release.rancher[0].name : null 
 }

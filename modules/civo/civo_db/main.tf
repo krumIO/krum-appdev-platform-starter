@@ -55,9 +55,16 @@ variable "egress_rules" {
   ]
 }
 
+variable "module_enabled" {
+  description = "Is module enabled"
+  type        = bool
+  default     = false
+}
+
 ############################################
 // Civo Database
 data "civo_size" "small" {
+  count = var.module_enabled ? 1 : 0
   filter {
     key      = "name"
     values   = ["db.small"]
@@ -70,6 +77,7 @@ data "civo_size" "small" {
 }
 
 data "civo_database_version" "postgresql" {
+  count = var.module_enabled ? 1 : 0
   filter {
     key    = "engine"
     values = ["postgresql"]
@@ -77,17 +85,19 @@ data "civo_database_version" "postgresql" {
 }
 
 resource "civo_database" "custom_database" {
+  count      = var.module_enabled ? 1 : 0
   name        = var.db_name
-  size        = element(data.civo_size.small.sizes, 0).name
+  size        = element(data.civo_size.small[0].sizes, 0).name
   nodes       = var.node_count
   region      = var.region
   network_id  = var.db_network_id
-  firewall_id = civo_firewall.db_firewall.id
-  engine      = element(data.civo_database_version.postgresql.versions, 0).engine
-  version     = element(data.civo_database_version.postgresql.versions, 0).version
+  firewall_id = civo_firewall.db_firewall[0].id
+  engine      = element(data.civo_database_version.postgresql[0].versions, 0).engine
+  version     = element(data.civo_database_version.postgresql[0].versions, 0).version
 }
 
 resource "civo_firewall" "db_firewall" {
+  count               = var.module_enabled ? 1 : 0
   name                 = "${var.db_name}-firewall"
   network_id           = var.db_network_id
   create_default_rules = false
@@ -102,19 +112,24 @@ resource "civo_firewall" "db_firewall" {
 }
 
 data "civo_database" "custom" {
-  name   = civo_database.custom_database.name
-  region = civo_database.custom_database.region
+  count = var.module_enabled ? 1 : 0
+  name   = civo_database.custom_database[0].name
+  region = civo_database.custom_database[0].region
 
   depends_on = [civo_database.custom_database]
 }
 ############################################
 
 output "database_password" {
-  value     = civo_database.custom_database.password
+  value     = var.module_enabled ? civo_database.custom_database[0].password : null
   sensitive = true
 }
 
 
 output "dns_endpoint" {
-  value = data.civo_database.custom.endpoint
+  value = var.module_enabled ? data.civo_database.custom[0].endpoint : null
+}
+
+output "module_enabled" {
+  value = var.module_enabled 
 }

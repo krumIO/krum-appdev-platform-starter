@@ -1,14 +1,13 @@
 // create nexus iq server
 resource "helm_release" "iq_server" {
-  name       = "nexus-iq-server"
-  repository = "https://sonatype.github.io/helm3-charts/"
-  chart      = "nexus-iq-server"
-  version    = var.iq_server_chart_version
-
-  namespace        = "nexus"
-  create_namespace = true
-
-  values = [local.iq_server_config]
+  count              = var.iq_server_enabled ? 1 : 0
+  name               = "nexus-iq-server"
+  repository         = "https://sonatype.github.io/helm3-charts/"
+  chart              = "nexus-iq-server"
+  version            = var.iq_server_chart_version
+  namespace          = "nexus"
+  create_namespace   = true
+  values             = [local.iq_server_config]
 
   set {
     name  = "iq.licenseSecret"
@@ -73,10 +72,10 @@ resource "helm_release" "iq_server" {
 
 
 
-  depends_on = [
-    helm_release.nxrm,
-    kubernetes_secret.nxrm_db_secret
-  ]
+depends_on = [
+  helm_release.nxrm,
+  kubernetes_secret.nxrm_db_secret
+]
 
 }
 
@@ -87,7 +86,7 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-production
     traefik.ingress.kubernetes.io/rewrite-target: "0"
 configYaml:
-  baseUrl: "https://nexus-iq.${var.dns_domain}"
+  baseUrl: "https://nexus-iq.${var.dns_domain != null ? var.dns_domain : ""}"
   sonatypeWork: /sonatype-work
   ${var.nexus_license_file != null ? "licenseFile: /etc/nexus-iq-license/license_lic" : ""}
   features:
