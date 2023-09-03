@@ -174,7 +174,7 @@ module "argo_workflows_ingress_proxied" {
 // Sonatype Nexus and IQ Server with PostgreSQL database if required
 module "nexus" {
   source            = "./modules/kube_cluster_tooling/sonatype_nexus"
-  module_enabled    = true // if true, nexus helm chart is installed
+  module_enabled    = var.enable_nexus_rm // if true, nexus helm chart is installed
   iq_server_enabled = var.enable_nexus_iq // if true, iq server helm chart is installed
 
   environment = "production"
