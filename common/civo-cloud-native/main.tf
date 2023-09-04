@@ -73,7 +73,7 @@ resource "random_id" "suffix" {
 #############################################################
 // Civo Infrastructure
 module "civo_sandbox_cluster" {
-  source         = "./modules/civo/civo_kubernetes"
+  source         = "../../modules/civo/civo_kubernetes"
   module_enabled = true
 
   cluster_name            = "civo-sandbox-${random_id.suffix.hex}"
@@ -90,7 +90,7 @@ module "civo_sandbox_cluster" {
 }
 
 module "civo_sandbox_cluster_network" {
-  source       = "./modules/civo/civo_network"
+  source       = "../../modules/civo/civo_network"
   network_name = "civo_sandbox_cluster-network-${random_id.suffix.hex}"
 }
 
@@ -99,7 +99,7 @@ module "civo_sandbox_cluster_network" {
 
 // Loadbalancer Ingress Controller, Cert Manager
 module "kube_loadbalancer" {
-  source           = "./modules/kube_cluster_tooling/loadbalancer_resources"
+  source           = "../../modules/kube_cluster_tooling/loadbalancer_resources"
   kube_config_file = var.kube_config_file
   module_enabled   = var.enable_kube_loadbalancer
 
@@ -115,7 +115,7 @@ module "kube_loadbalancer" {
 
 // Rancher
 module "rancher" {
-  source           = "./modules/kube_cluster_tooling/rancher"
+  source           = "../../modules/kube_cluster_tooling/rancher"
   kube_config_file = var.kube_config_file
   enable_module    = var.enable_rancher
 
@@ -134,7 +134,7 @@ module "rancher" {
 
 // Argo suite
 module "argo" {
-  source           = "./modules/kube_cluster_tooling/argo"
+  source           = "../../modules/kube_cluster_tooling/argo"
   kube_config_file = var.kube_config_file
   module_enabled   = var.enable_argo_suite
 
@@ -154,7 +154,7 @@ module "argo" {
 
 // Workflows Ingress Proxied
 module "argo_workflows_ingress_proxied" {
-  source         = "./modules/kube_cluster_tooling/rancher_ingress_proxy"
+  source         = "../../modules/kube_cluster_tooling/rancher_ingress_proxy"
   module_enabled = var.proxy_argo_workflows_via_rancher
 
   ingress_display_name = "argo-workflows"
@@ -173,7 +173,7 @@ module "argo_workflows_ingress_proxied" {
 
 // Sonatype Nexus and IQ Server with PostgreSQL database if required
 module "nexus" {
-  source            = "./modules/kube_cluster_tooling/sonatype_nexus"
+  source            = "../../modules/kube_cluster_tooling/sonatype_nexus"
   module_enabled    = var.enable_nexus_rm // if true, nexus helm chart is installed
   iq_server_enabled = var.enable_nexus_iq // if true, iq server helm chart is installed
 
@@ -210,7 +210,7 @@ module "nexus" {
 ##########################################################
 // Civo Database Used with Sonatype Nexus in Production Environment
 module "nxrm_database" {
-  source         = "./modules/civo/civo_db"
+  source         = "../../modules/civo/civo_db"
   module_enabled = var.enable_managed_civo_db // if true, database is created
 
   db_name               = "${var.db_name}-${random_id.suffix.hex}"
@@ -237,7 +237,7 @@ resource "local_sensitive_file" "database_credentials" {
 
 // Create Ingress for QI admin interface
 module "iq_admin_ingress_proxied" {
-  source         = "./modules/kube_cluster_tooling/rancher_ingress_proxy"
+  source         = "../../modules/kube_cluster_tooling/rancher_ingress_proxy"
   module_enabled = var.proxy_nexus_iq_via_rancher
 
   ingress_display_name = "nxiq-admin"
@@ -259,7 +259,7 @@ module "iq_admin_ingress_proxied" {
 ##########################################################
 // Neuvector Helm Install
 module "neuvector" {
-  source         = "./modules/kube_cluster_tooling/neuvector"
+  source         = "../../modules/kube_cluster_tooling/neuvector"
   module_enabled = var.enable_neuvector // if true, neuvector helm chart is installed
 
   // Chart versions
@@ -292,7 +292,7 @@ module "neuvector" {
 }
 
 module "coder" {
-  source        = "./modules/kube_cluster_tooling/coder"
+  source        = "../../modules/kube_cluster_tooling/coder"
   coder_enabled = var.enable_coder // if true, coder helm chart is installed
 
   // Chart versions
