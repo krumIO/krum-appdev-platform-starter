@@ -59,6 +59,7 @@ variable "kube_config_file" {
 variable "nexus_license_file_path" {
   description = "The path to the Sonatype Nexus license file."
   type        = string
+  default    = null
 }
 
 variable "rancher_installed" {

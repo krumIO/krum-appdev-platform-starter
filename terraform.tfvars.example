@@ -5,9 +5,3 @@ civo_token = "" //required
 // For Cert Manager SSL Certificates via LetsEncrypt
  # must be a valid email address
 email = "email@example.com" //required
-
-
-// If Sonatype Workshop
-// Sonatype License
- # If no license exists, set to null
-nexus_license_file_path = null  # "./artifacts/input_files/sonatype.lic"
