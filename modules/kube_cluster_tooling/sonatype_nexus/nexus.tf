@@ -2,7 +2,7 @@
 
 // Create random password for postgresql
 resource "random_password" "postgresql_password" {
-  count            = local.module_enabled ? 1 : 0
+  count            = var.environment == "development" && var.module_enabled ? 1 : 0
   length           = 16
   special          = true
   override_special = "_%@"
@@ -10,14 +10,14 @@ resource "random_password" "postgresql_password" {
 
 // export the password to a file
 resource "local_sensitive_file" "postgresql_password" {
-   count            = local.module_enabled ? 1 : 0
+  count    = var.environment == "development" && var.module_enabled ? 1 : 0
   content  = random_password.postgresql_password[0].result
   filename = "${var.outputs_path}/nexus-postgresql-password.txt"
 }
 
 // Dev Database Container
 resource "helm_release" "postgresql" {
-  count            = local.module_enabled ? 1 : 0
+  count = var.environment == "development" && var.module_enabled ? 1 : 0
 
   name       = "postgresql"
   repository = "https://charts.bitnami.com/bitnami"
@@ -45,7 +45,8 @@ resource "helm_release" "postgresql" {
 
 // Postgresql Service Internal URL
 data "kubernetes_service" "nexus-postgresql" {
-  count            = local.module_enabled ? 1 : 0
+  // count if environment is development and module is enabled
+  count = var.environment == "development" && var.module_enabled ? 1 : 0
 
   metadata {
     name      = "postgresql"
@@ -60,13 +61,12 @@ data "kubernetes_service" "nexus-postgresql" {
 # }
 
 locals {
-  module_enabled = var.environment == "development" ? true : false
   nexus_license_base64 = var.nexus_license_file != null ? filebase64(var.nexus_license_file) : "dummy_license_content"
 }
 
 // Nexus
 resource "helm_release" "nxrm" {
-  count            = var.module_enabled ? 1 : 0
+  count      = var.module_enabled ? 1 : 0
   name       = "nxrm"
   repository = "https://sonatype.github.io/helm3-charts"
   chart      = "nexus-repository-manager"
@@ -78,8 +78,12 @@ resource "helm_release" "nxrm" {
   values = [local.nxrm_values]
 
   set {
-    name  = "nexus.datastore.nexus.jdbcUrl"
-    value = "jdbc:postgresql://${var.environment == "development" ? "${helm_release.postgresql[0].name}-postgresql" : var.prod_db_host}:5432/${var.environment == "development" ? var.db_name : var.prod_db_name}"
+    name = "nexus.datastore.nexus.jdbcUrl"
+    value = var.environment == "development" ? (
+      length(helm_release.postgresql) > 0 ? "jdbc:postgresql://${helm_release.postgresql[0].name}-postgresql:5432/${var.db_name}" : "fallback_for_dev"
+      ) : (
+      var.prod_db_host != null ? "jdbc:postgresql://${var.prod_db_host}:5432/${var.prod_db_name}" : "fallback_for_prod"
+    )
   }
 
   set {
@@ -124,7 +128,7 @@ env:
     value: "true"
 ingress:
   enabled: true
-  ingressClassName: ${var.ingress_class_name != null ? var.ingress_class_name : ""}"
+  ingressClassName: "${var.ingress_class_name != null ? var.ingress_class_name : ""}"
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-production
     traefik.ingress.kubernetes.io/rewrite-target: "0"
@@ -167,7 +171,7 @@ resource "kubernetes_secret" "iq_server_license_secret" {
 
 //db secret
 resource "kubernetes_secret" "nxrm_db_secret" {
-  count            = local.module_enabled ? 1 : 0
+  count = var.environment == "development" && var.module_enabled ? 1 : 0
   metadata {
     name      = "nxrm-db-secret"
     namespace = "nexus"
@@ -181,12 +185,12 @@ resource "kubernetes_secret" "nxrm_db_secret" {
 
 // output helm repo url and name
 output "postgresql_service_name" {
-  value = local.module_enabled && var.environment == "development" ? helm_release.postgresql[0].name : ""
+  value       = var.module_enabled && var.environment == "development" ? helm_release.postgresql[0].name : ""
   description = "The name of the PostgreSQL service when deployed in a development environment."
 }
 
 output "helm_repo_url" {
-  value = var.module_enabled ? helm_release.nxrm[0].repository : ""
+  value       = var.module_enabled ? helm_release.nxrm[0].repository : ""
   description = "The URL of the Helm repository used for Nexus Repository Manager."
 }
 

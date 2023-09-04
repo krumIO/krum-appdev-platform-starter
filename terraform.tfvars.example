@@ -5,47 +5,45 @@ email = "email@example.com" ## required for SSL certificates via Let's Encrypt
 
 
 ##################################################
-## Enable Modules:###############################
+## Enable Modules:
 
-# Core Dependency: Set enable_kube_loadbalancer to true to activate other features
+// Core Dependency: Set enable_kube_loadbalancer to true to activate other features
 enable_kube_loadbalancer = true
-# Note: The following features depend on enable_kube_loadbalancer being true
+## Note: The following features depend on enable_kube_loadbalancer being true
 
-# Rancher
-# Set enable_rancher to true or false as needed
+// Rancher
+ # Set enable_rancher to true or false as needed
 enable_rancher = true
 
-# Argo Suite: ArgoCD, Argo Workflows, Argo Events
-# Note: Requires enable_kube_loadbalancer to be true
+// Argo Suite: ArgoCD, Argo Workflows, Argo Events
+ # Note: Requires enable_kube_loadbalancer to be true
 enable_argo_suite = true
-# Proxy Argo Workflows via Rancher
-# Note: Requires enable_rancher to be true
+ # Proxy Argo Workflows via Rancher
+ # Note: Requires enable_rancher to be true
 proxy_argo_workflows_via_rancher = true
 
-# Nexus Repository Manager
-# Set enable_nexus_rm to true or false as needed
+// Nexus Repository Manager
+ # Set enable_nexus_rm to true or false as needed
 enable_nexus_rm = false
-
-# Nexus IQ Server
-# Note: Requires enable_nexus_rm to be true
-enable_nexus_iq = false
-# Proxy Nexus IQ Server via Rancher
-# Note: Requires enable_rancher to be true
+enable_nexus_docker_registry = false //requires enable_nexus_rm to be true
+ # Nexus IQ Server
+enable_nexus_iq = false // Note: Requires enable_nexus_rm to be true
+ # Proxy Nexus IQ Server via Rancher
+ # Note: Requires enable_rancher to be true
 proxy_nexus_iq_via_rancher = false
 
-# Managed Civo Database
-# Set enable_managed_civo_db to true or false as needed
-# Note: Required if var.environment="production" for Nexus Repository Manager
+// Managed Civo Database
+ # Set enable_managed_civo_db to true or false as needed
+ # Note: Required if var.environment="production" for Nexus Repository Manager
 enable_managed_civo_db = false
 
-# NeuVector
-# Set enable_neuvector to true or false as needed
-enable_neuvector = true
+// NeuVector
+ # Set enable_neuvector to true or false as needed
+enable_neuvector = false
 
-# Coder
-# Set enable_coder to true or false as needed
+// Coder
+ # Set enable_coder to true or false as needed
 enable_coder = false
-
 
 #########################################################################
 ############ Do Not Modify the following for the Workshop ##############

@@ -122,3 +122,8 @@ variable "enable_kube_loadbalancer" {
   description = "enable kube loadbalancer"
   default     = false
 }
+
+variable "enable_nexus_docker_registry" {
+  description = "enable nxrm docker registry"
+  default     = false
+}

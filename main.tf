@@ -120,7 +120,7 @@ module "rancher" {
   enable_module    = var.enable_rancher
 
   // Chart versions
-  rancher_version = "2.7.5"
+  rancher_version = "2.7.6"
   // Ingress details
   email              = var.email
   dns_domain         = module.kube_loadbalancer.module_enabled ? join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"]) : null
@@ -140,9 +140,9 @@ module "argo" {
 
 
   // chart versions
-  argo_cd_chart_version        = "5.43.4"
+  argo_cd_chart_version        = "5.45.1"
   argo_workflows_chart_version = "0.33.1"
-  argo_events_chart_version    = "2.4.0"
+  argo_events_chart_version    = "2.4.1"
   // ingress details
   email              = var.email
   dns_domain         = module.kube_loadbalancer.module_enabled ? join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"]) : null
@@ -177,14 +177,14 @@ module "nexus" {
   module_enabled    = var.enable_nexus_rm // if true, nexus helm chart is installed
   iq_server_enabled = var.enable_nexus_iq // if true, iq server helm chart is installed
 
-  environment = "production"
+  environment = "development" // production or development
   // chart version
   nxrm_chart_version      = "58.1.0"
   iq_server_chart_version = "165.0.0"
   // license
   nexus_license_file = var.nexus_license_file_path
   // enable self-hosted docker registry with nxrm
-  nxrm_docker_registry_enabled = true
+  nxrm_docker_registry_enabled = var.enable_nexus_docker_registry
   // database details
   db_name             = "nexusdb"
   postgresql_version  = "12.6.5"

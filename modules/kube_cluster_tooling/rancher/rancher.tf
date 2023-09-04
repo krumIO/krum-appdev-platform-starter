@@ -73,7 +73,7 @@ resource "random_password" "rancher_admin_password" {
 
 resource "local_sensitive_file" "rancher_admin_password_and_url" {
   count    = var.enable_module ? 1 : 0
-  content  = "Admin Password: ${random_password.rancher_admin_password[0].result}\nRancher Server URL: rancher.${var.dns_domain != null ? var.dns_domain : ""}"
+  content  = "Admin Password: ${random_password.rancher_admin_password[0].result}\nRancher Server URL: https://rancher.${var.dns_domain != null ? var.dns_domain : ""}"
   filename = "${var.file_output_directory}/rancher-admin-password-and-url.txt"
 }
 
