@@ -4,7 +4,7 @@ civo_token = "" //required
 
 // For Cert Manager SSL Certificates via LetsEncrypt
  # must be a valid email address
-email = "stephen-test@krum.io" //required
+email = "email@example.com" //required
 
 
 // If Sonatype Workshop
