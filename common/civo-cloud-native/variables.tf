@@ -94,7 +94,7 @@ variable "enable_managed_civo_db" {
   default     = false
 }
 
-variable "proxy_nexus_iq_via_rancher" {
+variable "proxy_nexus_iq_admin_via_rancher" {
   description = "proxy nexus iq via rancher"
   default     = false
 }

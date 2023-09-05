@@ -80,28 +80,28 @@ For more advanced configurations, you can set optional variables such as `db_nam
 
 ### Inputs
 
-| Variable                     | Description                                        | Type     | Default           | Dependencies                                          |
-| ---------------------------- | -------------------------------------------------- | -------- | ----------------- | ----------------------------------------------------- |
-| `civo_token`                 | Civo API Token                                     | `string` | -                 | None                                                  |
-| `civo_region`                | Civo region for the deployment                     | `string` | "NYC1"            | None                                                  |
-| `email`                      | Email address for LetsEncrypt certificate requests | `string` | -                 | None                                                  |
-| `cert_manager_version`       | cert-manager version                               | `string` | "1.12.2"          | None                                                  |
-| `rancher_version`            | rancher version                                    | `string` | "2.7.5"           | None                                                  |
-| `traefik_version`            | traefik version                                    | `string` | "23.1.0"          | None                                                  |
-| `ingress_class_name`         | ingress class name                                 | `string` | "traefik"         | None                                                  |
-| `ignore_rancher_metadata`    | ignore rancher metadata                            | `bool`   | `false`           | None                                                  |
-| `db_name`                    | Name of the database                               | `string` | "nxrmdb"          | None                                                  |
-| `db_node_count`              | Number of nodes for the database                   | `int`    | 1                 | None                                                  |
-| `db_firewall_ingress_cidr`   | CIDR for ingress rules                             | `list`   | ["0.0.0.0/0"]     | None                                                  |
-| `kube_config_file`           | Path to kubeconfig file                            | `string` | "./artifacts..."  | None                                                  |
-| `nexus_license_file_path`    | Path to Sonatype Nexus license file                | `string` | `null`            | `enable_nexus_rm` must be `true`                      |
-| `enable_nexus_iq`            | Enable Nexus IQ Server                             | `bool`   | `false`           | `enable_nexus_rm` must be `true`                      |
-| `proxy_nexus_iq_via_rancher` | Proxy Nexus IQ via Rancher                         | `bool`   | `false`           | `enable_rancher` and `enable_nexus_iq` must be `true` |
-| `rancher_installed`          | Rancher installed                                  | `bool`   | `true`            | None                                                  |
-| `artifact_output_directory`  | Directory for output files                         | `string` | "./artifacts/..." | None                                                  |
-| `enable_kube_loadbalancer`   | Enables the Kubernetes load balancer               | `bool`   | `false`           | Core Dependency for many modules                      |
-| `enable_rancher`             | Enables Rancher                                    | `bool`   | `false`           | Requires `enable_kube_loadbalancer` to be `true`      |
-| `enable_argo_suite`          | Enables the Argo Suite                             | `bool`   | `false`           | Requires `enable_kube_loadbalancer` to be `true`      |
+| Variable                           | Description                                        | Type     | Default           | Dependencies                                          |
+| ---------------------------------- | -------------------------------------------------- | -------- | ----------------- | ----------------------------------------------------- |
+| `civo_token`                       | Civo API Token                                     | `string` | -                 | None                                                  |
+| `civo_region`                      | Civo region for the deployment                     | `string` | "NYC1"            | None                                                  |
+| `email`                            | Email address for LetsEncrypt certificate requests | `string` | -                 | None                                                  |
+| `cert_manager_version`             | cert-manager version                               | `string` | "1.12.2"          | None                                                  |
+| `rancher_version`                  | rancher version                                    | `string` | "2.7.5"           | None                                                  |
+| `traefik_version`                  | traefik version                                    | `string` | "23.1.0"          | None                                                  |
+| `ingress_class_name`               | ingress class name                                 | `string` | "traefik"         | None                                                  |
+| `ignore_rancher_metadata`          | ignore rancher metadata                            | `bool`   | `false`           | None                                                  |
+| `db_name`                          | Name of the database                               | `string` | "nxrmdb"          | None                                                  |
+| `db_node_count`                    | Number of nodes for the database                   | `int`    | 1                 | None                                                  |
+| `db_firewall_ingress_cidr`         | CIDR for ingress rules                             | `list`   | ["0.0.0.0/0"]     | None                                                  |
+| `kube_config_file`                 | Path to kubeconfig file                            | `string` | "./artifacts..."  | None                                                  |
+| `nexus_license_file_path`          | Path to Sonatype Nexus license file                | `string` | `null`            | `enable_nexus_rm` must be `true`                      |
+| `enable_nexus_iq`                  | Enable Nexus IQ Server                             | `bool`   | `false`           | `enable_nexus_rm` must be `true`                      |
+| `proxy_nexus_iq_admin_via_rancher` | Proxy Nexus IQ Admin Tools via Rancher             | `bool`   | `false`           | `enable_rancher` and `enable_nexus_iq` must be `true` |
+| `rancher_installed`                | Rancher installed                                  | `bool`   | `true`            | None                                                  |
+| `artifact_output_directory`        | Directory for output files                         | `string` | "./artifacts/..." | None                                                  |
+| `enable_kube_loadbalancer`         | Enables the Kubernetes load balancer               | `bool`   | `false`           | Core Dependency for many modules                      |
+| `enable_rancher`                   | Enables Rancher                                    | `bool`   | `false`           | Requires `enable_kube_loadbalancer` to be `true`      |
+| `enable_argo_suite`                | Enables the Argo Suite                             | `bool`   | `false`           | Requires `enable_kube_loadbalancer` to be `true`      |
 
 **Note**: More dependent variables are available for optional modules. Please refer to the `variables.tf` file for full details and descriptions.
 

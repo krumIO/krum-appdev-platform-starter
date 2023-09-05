@@ -44,7 +44,7 @@ module "civo-cloud-native" {
   enable_nexus_iq = false // Note: Requires enable_nexus_rm to be true
   # Proxy Nexus IQ Server via Rancher
   # Note: Requires enable_rancher to be true
-  proxy_nexus_iq_via_rancher = false
+  proxy_nexus_iq_admin_via_rancher = false
 
   // Managed Civo Database
   # Set enable_managed_civo_db to true or false as needed

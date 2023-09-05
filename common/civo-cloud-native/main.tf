@@ -238,7 +238,7 @@ resource "local_sensitive_file" "database_credentials" {
 // Create Ingress for QI admin interface
 module "iq_admin_ingress_proxied" {
   source         = "../../modules/kube_cluster_tooling/rancher_ingress_proxy"
-  module_enabled = var.proxy_nexus_iq_via_rancher
+  module_enabled = var.proxy_nexus_iq_admin_via_rancher
 
   ingress_display_name = "nxiq-admin"
   protocol             = "http"
