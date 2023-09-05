@@ -25,6 +25,7 @@ terraform {
 }
 
 resource "kubernetes_namespace" "coder_development_env" {
+  count = var.coder_enabled ? 1 : 0
   metadata {
     name = "coder-development-environments"
   }
@@ -32,7 +33,7 @@ resource "kubernetes_namespace" "coder_development_env" {
 
 // Create random password for postgresql
 resource "random_password" "postgresql_password" {
-  count            = var.environment == "development" ? 1 : 0
+  count            = var.coder_enabled && var.environment == "development" ? 1 : 0
   length           = 16
   special          = true
   override_special = "_%@"
@@ -40,14 +41,14 @@ resource "random_password" "postgresql_password" {
 
 // export the password to a file
 resource "local_sensitive_file" "postgresql_password" {
-  count    = var.environment == "development" ? 1 : 0
+  count    = var.coder_enabled && var.environment == "development" ? 1 : 0
   content  = random_password.postgresql_password[0].result
   filename = "${var.file_output_directory}/coder-postgresql-password.txt"
 }
 
 // Dev Database Container
 resource "helm_release" "postgresql" {
-  count = var.environment == "development" ? 1 : 0
+  count = var.coder_enabled && var.environment == "development" ? 1 : 0
 
   name       = "coder-db-postgresql"
   repository = "https://charts.bitnami.com/bitnami"
@@ -76,7 +77,7 @@ resource "helm_release" "postgresql" {
 
 // Postgresql Service Internal URL
 data "kubernetes_service" "coder-postgresql" {
-  count = var.environment == "development" ? 1 : 0
+  count = var.coder_enabled && var.environment == "development" ? 1 : 0
 
   metadata {
     name      = "postgresql"
@@ -87,7 +88,7 @@ data "kubernetes_service" "coder-postgresql" {
 }
 
 resource "kubectl_manifest" "coder-db-url" {
-  count    = var.environment == "development" ? 1 : 0
+  count    = var.coder_enabled && var.environment == "development" ? 1 : 0
   provider = kubectl
 
   yaml_body = <<YAML
@@ -105,6 +106,7 @@ YAML
 }
 
 resource "helm_release" "coder" {
+  count = var.coder_enabled ? 1 : 0
   name             = "coder"
   repository       = "https://helm.coder.com/v2"
   chart            = "coder"
@@ -164,6 +166,7 @@ EOT
 }
 
 resource "kubectl_manifest" "coder-ingress" {
+  count = var.coder_enabled ? 1 : 0
   provider = kubectl
 
   yaml_body = <<YAML
@@ -197,6 +200,7 @@ YAML
 }
 
 resource "kubectl_manifest" "coder-service-account" {
+  count = var.coder_enabled ? 1 : 0
   provider  = kubectl
   yaml_body = <<YAML
 apiVersion: v1
@@ -208,6 +212,7 @@ YAML
 }
 
 resource "kubectl_manifest" "coder-role-binding" {
+  count = var.coder_enabled ? 1 : 0
   provider  = kubectl
   yaml_body = <<YAML
 apiVersion: rbac.authorization.k8s.io/v1
@@ -227,6 +232,7 @@ YAML
 }
 
 resource "kubectl_manifest" "coder-role" {
+  count = var.coder_enabled ? 1 : 0
   provider  = kubectl
   yaml_body = <<YAML
 apiVersion: rbac.authorization.k8s.io/v1
@@ -246,6 +252,7 @@ YAML
 }
 
 resource "kubectl_manifest" "coder-pvc-manager-role" {
+  count = var.coder_enabled ? 1 : 0
   provider  = kubectl
   yaml_body = <<YAML
 apiVersion: rbac.authorization.k8s.io/v1
@@ -266,6 +273,7 @@ YAML
 }
 
 resource "kubectl_manifest" "coder-pvc-manager-role-binding" {
+  count = var.coder_enabled ? 1 : 0
   provider  = kubectl
   yaml_body = <<YAML
 apiVersion: rbac.authorization.k8s.io/v1
@@ -287,6 +295,7 @@ YAML
 }
 
 resource "kubernetes_role" "deployment_creator" {
+  count = var.coder_enabled ? 1 : 0
   metadata {
     name      = "deployment-creator-role"
     namespace = "coder-development-environments"
@@ -302,6 +311,7 @@ resource "kubernetes_role" "deployment_creator" {
 }
 
 resource "kubernetes_role_binding" "deployment_creator_binding" {
+  count = var.coder_enabled ? 1 : 0
   metadata {
     name      = "deployment-creator-binding"
     namespace = "coder-development-environments"
@@ -310,7 +320,7 @@ resource "kubernetes_role_binding" "deployment_creator_binding" {
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind     = "Role"
-    name     = kubernetes_role.deployment_creator.metadata[0].name
+    name     = kubernetes_role.deployment_creator[count.index].metadata[0].name
   }
 
   subject {
@@ -349,4 +359,9 @@ variable "file_output_directory" {
 variable "ingress_class_name" {
   type    = string
   default = "traefik"
+}
+
+variable "coder_enabled" {
+  type    = bool
+  default = false
 }

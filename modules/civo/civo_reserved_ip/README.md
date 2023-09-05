@@ -31,11 +31,3 @@ Then, run `terraform init` and `terraform apply`.
 ## Notes
 
 Make sure to replace `"path/to/module"` with the actual path to this module in your code.
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)

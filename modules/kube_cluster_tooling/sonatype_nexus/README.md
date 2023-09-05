@@ -26,7 +26,7 @@ This module deploys a Sonatype Nexus Repository Manager and Sonatype Nexus IQ Se
 ## Module Input Variables
 
 - `environment`: The deployment environment (development or production).
-- `nxrm_version`: The version of the Sonatype Nexus to be deployed.
+- `nxrm_chart_version`: The version of the Sonatype Nexus to be deployed.
 - `nexus_license_file`: The path to the Sonatype Nexus license file.
 - `db_name`: The name of the database to be created.
 - `postgresql_version`: The version of the PostgreSQL to be deployed.
@@ -38,7 +38,10 @@ This module deploys a Sonatype Nexus Repository Manager and Sonatype Nexus IQ Se
 - `prod_db_username`: The username for the external database for the production environment. (Optional, default: "")
 - `prod_db_password`: The password for the external database for the production environment. (Sensitive, Optional, default: "")
 - `prod_db_name`: The name of the external database for the production environment. (Optional, default: "")
-- `iq_server_version`: The version of the Sonatype Nexus IQ Server Chart to be deployed.
+- `iq_server_chart_version`: The version of the Sonatype Nexus IQ Server Chart to be deployed.
+- `module_enabled`: Enable Nexus Repository Manager deployment
+- `iq_server_enabled`: Enable IQ Server deployment
+- `nxrm_docker_registry_enabled`: Enable a self hosted docker registry inside of Nexus Repository Manager
 
 ## Module Outputs
 
@@ -49,11 +52,14 @@ This module deploys a Sonatype Nexus Repository Manager and Sonatype Nexus IQ Se
 ```hcl
 module "nexus" {
   source             = "git::https://github.com/example/nexus.git"
+  module_enabled    = true// if true, nexus helm chart is installed
+  iq_server_enabled = true // if true, iq server helm chart is installed
+  nxrm_docker_registroy_enabled = true // creates docker registry in nxrm deployment
   environment        = "production"
-  nxrm_version       = "3.38.0"
-  nexus_license_file = "./license.lic"
-  db_name            = "nexus_db"
-  postgresql_version = "11.11.0"
+  nxrm_chart_version       = "3.38.0"
+  nexus_license_file = "./license.lic" // set null if no license
+  db_name            = "nexusdb"
+  postgresql_version = "12.6.5"
   postgresql_username = "admin"
   outputs_path       = "./output"
   dns_domain         = "example.com"
@@ -62,18 +68,10 @@ module "nexus" {
   prod_db_username   = "prod_db_user"
   prod_db_password   = "prod_db_password"
   prod_db_name       = "prod_db_name"
-  iq_server_version  = "1.112.0"
+  iq_server_chart_version  = "165.0.0"
 }
 ```
 
 ## Note
 
 This module creates a random password for PostgreSQL and the Nexus IQ admin account. These passwords are stored in sensitive local files in the specified outputs path. Please ensure this path is secure.
-
-## Authors
-
-Module managed by [Example](https://github.com/example).
-
-## License
-
-Apache 2 Licensed. See LICENSE for full details.

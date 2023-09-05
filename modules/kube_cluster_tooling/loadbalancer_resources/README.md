@@ -1,65 +1,65 @@
-# Traefik and Cert-Manager Terraform Module
+# Terraform Kubernetes Module for Traefik and Cert-Manager
 
-This module provides Terraform scripts to setup [Traefik](https://traefik.io/) as an Ingress Controller and [cert-manager](https://cert-manager.io/) for automatic certificate management in a Kubernetes cluster. The Civo, Kubernetes, Helm, and Kubectl providers are leveraged to achieve this.
+This Terraform module provides an easy way to deploy Traefik as an Ingress controller along with Cert-Manager for SSL certificate management on a Kubernetes cluster.
 
-## Resources
+## Features
 
-The following resources are created by this module:
+- Deployment of Cert-Manager using Helm.
+- Configuration of Let's Encrypt Staging and Production Issuers.
+- Deployment of Traefik as an Ingress controller using Helm.
+- Output of Load Balancer IP and Helm repository details.
 
-- cert-manager Helm chart
-- ClusterIssuer for Let's Encrypt staging and production environments
-- Traefik Helm chart
-- Traefik's ClusterRole and ClusterRoleBinding
-- Fetching Traefik's Load Balancer IP address
+## Requirements
+
+The following Terraform providers are required:
+
+- Kubernetes: 2.22.0
+- Helm: 2.10.1
+- Kubectl: 1.14.0 (gavinbunney/kubectl)
+- Local: 2.4.0
+- Random: 3.5.1
 
 ## Usage
 
-```hcl
-module "traefik_certmanager" {
-  source = "../path/to/module"
+Include this repository as a module in your existing Terraform code:
 
-  email                    = "admin@example.com"
-  traefik_version          = "2.5.4"
-  traefik_dashboard_password = "password123"
-  kube_config_file         = "~/.kube/config"
+```hcl
+module "traefik_cert_manager" {
+  source = "./path/to/this/module"
+
+  email                      = "example@example.com"
+  traefik_chart_version      = "x.y.z"
+  cert_manager_chart_version = "a.b.c"
+  kube_config_file           = "./kubeconfig.yaml"
 }
 ```
 
+Run `terraform init` and `terraform apply` to deploy.
+
 ## Variables
 
-The following variables are used in this module:
-
-- `email`: Email address used for certificate issuers and certificate resolvers.
-- `traefik_version`: Version of Traefik Helm chart to be deployed.
-- `traefik_dashboard_password`: Password for accessing Traefik dashboard.
+- `email`: Email address used for Let's Encrypt certificate issuers and certificate resolvers.
+- `traefik_chart_version`: Version of Traefik Helm chart to be deployed.
+- `traefik_dashboard_password`: Password for accessing the Traefik dashboard. (Sensitive)
 - `kube_config_file`: Path to kubeconfig file.
-
-## Providers
-
-This module uses the following Terraform providers:
-
-- `civo/civo` version 1.0.34
-- `hashicorp/kubernetes` version 2.20.0
-- `hashicorp/helm` version 2.9.0
-- `gavinbunney/kubectl` version 1.13.0
-- `hashicorp/local` version 1.4.0
-- `hashicorp/random` version 3.5.1
+- `ingress_class_name`: The Ingress Class Name. (Default: "traefik")
+- `cert_manager_chart_version`: Version of Cert-Manager Helm chart to be deployed.
+- `module_enabled`: Flag to enable or disable the module. (Default: true)
 
 ## Outputs
 
-The following outputs are exported:
-
-- `load_balancer_ip`: The load balancer IP address. It can be used to access the Traefik Dashboard and other services exposed through Traefik.
+- `load_balancer_ip`: IP address of the load balancer for Traefik.
+- `helm_repo_url_traefik`: Helm repository URL for Traefik.
+- `helm_repo_name_traefik`: Helm repository name for Traefik.
+- `helm_repo_url_cert_manager`: Helm repository URL for Cert-Manager.
+- `helm_repo_name_cert_manager`: Helm repository name for Cert-Manager.
+- `module_enabled`: Status of the module, whether it is enabled or not.
 
 ## Dependencies
 
-- A Kubernetes cluster is required. The cluster connection is configured using the `kube_config_file` variable.
-- The Helm provider is used to deploy Traefik and cert-manager. Make sure Helm is configured correctly in your cluster.
+- A running Kubernetes cluster and a configured kubectl.
+- Helm installed and configured to manage deployments in Kubernetes.
 
-## Authors
+## Contributing
 
-Module managed by [Krumware](https://github.com/krumIO).
-
-## License
-
-MIT License. See [LICENSE](./LICENSE) for full details.
+Feel free to open issues or pull requests to improve the module, making sure to follow the established code conventions and best practices.

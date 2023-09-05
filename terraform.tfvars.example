@@ -1,14 +1,7 @@
-civo_region = "NYC1"
-civo_token = "your_civo_api_token"
+// Civo resources
+civo_region = "LON1" //required
+civo_token = "" //required
 
-
-email = "email_for_lets_encrypt-certificates"
-
-## if deploying a database module
-db_name = "nxrmdb" 
-db_node_count = 1 
-db_firewall_ingress_cidr = [ "0.0.0.0/0" ]
-
-## Sonatype License
-# If no license exists, set to null
-nexus_license_file_path = null  # "./artifacts/input_files/sonatype.lic"
+// For Cert Manager SSL Certificates via LetsEncrypt
+ # must be a valid email address
+email = "email@example.com" //required

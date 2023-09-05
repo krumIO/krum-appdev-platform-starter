@@ -1,60 +1,61 @@
-# Civo Kubernetes Cluster Module
+# Terraform Civo Kubernetes Cluster Module
 
-This module manages a Kubernetes cluster in the [Civo cloud](https://www.civo.com/), which uses the Civo Terraform provider.
+This Terraform module provisions a Kubernetes cluster on Civo Cloud, along with an associated firewall. The cluster type, node size, and other configurations are customizable.
 
-## Requirements
+## Dependencies
 
-- Terraform 1.0 or newer.
-- Civo API token
+- Civo Terraform Provider v1.0.35 or newer
 
 ## Usage
 
-Here is an example of how you might use this module in your own Terraform code:
+Here's how to use this module in your Terraform project:
 
 ```hcl
 module "civo_kubernetes_cluster" {
-  source = "path/to/module"
+  source = "./path/to/this/module"
 
-  kube_config_output_path = "./kubeconfig.yaml"
-  cluster_name = "my_cluster"
-  cluster_type = "k3s"
-  firewall_name = "my_cluster_firewall"
-  node_count = 3
-  node_size = "g4s.kube.medium"
-  applications = ["linkerd", "monitoring"]
-  node_pool_name = "my_node_pool"
-  network_id = "my_network_id"
+  cluster_name    = "my-cluster"
+  cluster_type    = "k3s"
+  firewall_name   = "my-firewall"
+  node_count      = 3
+  node_size       = "xsmall"
+  applications    = ["Traefik", "metrics-server"]
+  node_pool_name  = "default-pool"
+  network_id      = "some-network-id"
+  kube_config_output_path = "/path/to/kubeconfig"
 }
 ```
 
-Then, run `terraform init` and `terraform apply`.
-
 ## Variables
 
-- `kube_config_output_path`: (Required) Path where the generated kubeconfig file will be saved.
-- `cluster_name`: (Required) Name of the Kubernetes cluster to create.
-- `cluster_type`: (Required) Type of the Kubernetes cluster. Supported values: `k3s`.
-- `firewall_name`: (Required) Name of the firewall associated with the cluster.
-- `node_count`: (Required) Number of nodes in the cluster.
-- `node_size`: (Required) Size of the nodes in the cluster. Supported values: `xsmall`, `large`.
-- `applications`: (Required) List of applications to install on the cluster.
-- `node_pool_name`: (Required) Name of the node pool.
-- `network_id`: (Required) ID of the network to associate with the cluster.
+| Variable Name            | Description                            | Type          | Default Value  | Required |
+|--------------------------|----------------------------------------|---------------|----------------|----------|
+| `kube_config_output_path`| Path to write the kubeconfig file to   | `string`      |                | Yes      |
+| `cluster_name`           |                                        | `string`      |                | Yes      |
+| `cluster_type`           |                                        | `string`      |                | Yes      |
+| `firewall_name`          |                                        | `string`      |                | Yes      |
+| `node_count`             |                                        | `number`      |                | Yes      |
+| `node_size`              | Node size for the cluster. xsmall, large| `string`      |                | Yes      |
+| `applications`           |                                        | `list(string)`|                | Yes      |
+| `node_pool_name`         |                                        | `string`      |                | Yes      |
+| `network_id`             |                                        | `string`      |                | Yes      |
+| `module_enabled`         | Is module enabled                      | `bool`        | `true`         | No       |
 
 ## Outputs
 
 - `cluster_id`: The ID of the created Kubernetes cluster.
 - `firewall_id`: The ID of the created firewall.
-- `kubeconfig`: The kubeconfig for the created cluster. This is marked as sensitive and will not be displayed in the console.
+- `kubeconfig`: The kubeconfig for the created cluster. (Sensitive)
+- `api_endpoint`: The API endpoint for the created cluster.
+- `cluster_name`: The name of the created cluster.
 
-## Notes
+## Important Note on Firewall Configuration
 
-Make sure to replace `"path/to/module"` with the actual path to this module in your code.
+By default, the firewall ingress rule for the Kubernetes API server is set to allow traffic from `0.0.0.0/0`. This is not recommended for production environments. You may need to update this to suit your specific needs:
 
-## Contributing
+- Limit to your local network.
+- Restrict to the IP address of specific instances or set of instances.
+- Use a VPN or private network CIDR.
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Adjust the ingress rules to match your security requirements.
 
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)

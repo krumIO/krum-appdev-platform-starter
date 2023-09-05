@@ -24,7 +24,14 @@ variable "applications" {}
 variable "node_pool_name" {}
 variable "network_id" {}
 
+variable "module_enabled" {
+  description = "Is module enabled"
+  type        = bool
+  default     = true
+}
+
 data "civo_size" "xsmall" {
+  count = var.module_enabled ? 1 : 0
   filter {
     key = "type"
     values = ["kubernetes"]
@@ -36,6 +43,7 @@ data "civo_size" "xsmall" {
 }
 
 data "civo_size" "large" {
+  count = var.module_enabled ? 1 : 0
   filter {
     key = "type"
     values = ["kubernetes"]
@@ -47,6 +55,7 @@ data "civo_size" "large" {
 }
 
 resource "civo_firewall" "cluster_firewall" {
+  count = var.module_enabled ? 1 : 0
   name = var.firewall_name
   network_id = var.network_id
   create_default_rules = false
@@ -62,8 +71,9 @@ resource "civo_firewall" "cluster_firewall" {
 
 
 resource "civo_kubernetes_cluster" "cluster" {
+  count = var.module_enabled ? 1 : 0
   name = var.cluster_name
-  firewall_id = civo_firewall.cluster_firewall.id
+  firewall_id = civo_firewall.cluster_firewall[0].id
   network_id = var.network_id
   cluster_type = var.cluster_type
   applications = var.applications
@@ -75,34 +85,37 @@ resource "civo_kubernetes_cluster" "cluster" {
 }
 
 resource "local_sensitive_file" "civo_sandbox_cluster-kubeconfig" {
+  count = var.module_enabled ? 1 : 0
   filename          = var.kube_config_output_path
-  content = resource.civo_kubernetes_cluster.cluster.kubeconfig
+  content = resource.civo_kubernetes_cluster.cluster[0].kubeconfig
 
 
   depends_on = [resource.civo_kubernetes_cluster.cluster]
 }
 
 output "cluster_id" {
-  value = civo_kubernetes_cluster.cluster.id
+  value = var.module_enabled ? civo_kubernetes_cluster.cluster[0].id : null
 }
 
+
 output "firewall_id" {
-  value = civo_firewall.cluster_firewall.id
+  value = var.module_enabled ? civo_firewall.cluster_firewall[0].id : null
 }
+
 
 output "kubeconfig" {
   description = "Kubeconfig for the created cluster"
-  value       = civo_kubernetes_cluster.cluster.kubeconfig
+  value       = var.module_enabled ? civo_kubernetes_cluster.cluster[0].kubeconfig : null
   sensitive   = true
 }
 
 output "api_endpoint" {
   description = "API endpoint for the created cluster"
-  value       = civo_kubernetes_cluster.cluster.api_endpoint
+  value       = var.module_enabled ? civo_kubernetes_cluster.cluster[0].api_endpoint : null
 }
 
 // output cluster name
 output "cluster_name" {
   description = "Cluster name"
-  value       = civo_kubernetes_cluster.cluster.name
+  value       = var.module_enabled ? civo_kubernetes_cluster.cluster[0].name : null
 }

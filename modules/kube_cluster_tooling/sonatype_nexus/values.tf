@@ -3,7 +3,7 @@ variable "environment" {
   type        = string
 }
 
-variable "nxrm_version" {
+variable "nxrm_chart_version" {
   description = "The version of the Sonatype Nexus to be deployed."
   type        = string
 }
@@ -40,6 +40,7 @@ variable "dns_domain" {
 
 variable "ingress_class_name" {
   description = "The Ingress Class Name."
+  default     = null
   type        = string
 }
 
@@ -69,7 +70,32 @@ variable "prod_db_name" {
   default     = ""
 }
 
-variable "iq_server_version" {
+variable "iq_server_chart_version" {
   description = "The version of the Sonatype Nexus IQ Server Chart to be deployed."
   type        = string
+}
+
+variable "nxrm_docker_registry_enabled" {
+  description = "Whether to enable the Docker Registry for the Sonatype Nexus."
+  type        = bool
+  default     = false
+}
+
+variable "module_enabled" {
+  description = "Whether to enable the module."
+  type        = bool
+  default     = true
+}
+
+variable "iq_server_enabled" {
+  description = "Enable or disable the deployment of the Nexus IQ module"
+  default     = true
+  type        = bool
+}
+
+locals {
+  nexus_host_repo  = var.dns_domain != null ? "nexus.${var.dns_domain}" : "nexus.default_domain"
+  nexus_host_value = var.dns_domain != null ? "nexus.${var.dns_domain}" : "nexus.default_domain"
+  password_value = (var.environment == "development" && length(random_password.postgresql_password) > 0) ? random_password.postgresql_password[0].result : var.prod_db_password
+
 }

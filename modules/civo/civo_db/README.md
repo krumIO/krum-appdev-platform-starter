@@ -1,57 +1,70 @@
+# Terraform Civo Database Module
 
-# Civo Database Module
+This Terraform module creates a PostgreSQL database and its associated firewall on Civo Cloud. The database engine, size, and other configurations are customizable.
 
-This module provisions a database in the [Civo Kubernetes service](https://www.civo.com/), including creating the database, a corresponding firewall, and outputs the generated database password. It uses the Civo Terraform provider.
+## Dependencies
 
-## Requirements
-
-- Terraform 1.0 or newer.
-- Civo API token
-- Civo Region
+- Civo Terraform Provider v1.0.35 or newer
 
 ## Usage
 
-Here is an example of how you might use this module in your own Terraform code:
+Here's how to invoke this module in your project:
 
 ```hcl
-module "civo_db" {
-  source = "path/to/module"
+module "civo_database" {
+  source = "./path/to/this/module"
 
-  db_name         = "mydatabase"
-  node_count      = 2
-  region          = "NYC1"
-  db_network_id   = "network-id"
-  firewall_ingress_cidr = ["0.0.0.0/0"]
+  db_name       = "example-db"
+  node_count    = 3
+  region        = "lon1"
+  module_enabled = true
+
+  // Other variables can also be set here
 }
 ```
 
-Then, run `terraform init` and `terraform apply`.
-
 ## Variables
 
-- `db_name`: (Required) Name of the database
-- `node_count`: (Required) The number of nodes
-- `region`: (Required) The region in which to deploy the database
-- `firewall_name`: (Optional) Name of the firewall. Default is "db-firewall"
-- `db_network_id`: (Optional) ID of the network. Default is "network-id"
-- `db_port`: (Optional) Port of the database. Default is "5432"
-- `firewall_ingress_cidr`: (Optional) CIDR for ingress rules. Default is ["0.0.0.0/0"]
-- `egress_rules`: (Optional) List of egress rules. Default is an egress rule for all traffic on all ports
+| Variable Name          | Description           | Type          | Default Value  | Required |
+|------------------------|-----------------------|---------------|----------------|----------|
+| `db_name`              |                       | `string`      |                | Yes      |
+| `node_count`           |                       | `number`      |                | Yes      |
+| `region`               |                       | `string`      |                | Yes      |
+| `firewall_name`        | Name of the firewall  | `string`      | "db-firewall"  | No       |
+| `db_network_id`        | ID of the network     | `string`      | "network-id"   | No       |
+| `db_port`              | Port of the database  | `string`      | "5432"         | No       |
+| `firewall_ingress_cidr`| CIDR for ingress rules| `list(string)`| ["0.0.0.0/0"]  | No       |
+| `egress_rules`         | List of egress rules  | `list(object)`| (See below)    | No       |
+| `module_enabled`       | Is module enabled     | `bool`        | `false`        | No       |
+
+**Default for `egress_rules`:**
+
+```hcl
+[
+  {
+    label      = "all"
+    protocol   = "tcp"
+    port_range = "1-65535"
+    cidr       = ["0.0.0.0/0"]
+    action     = "allow"
+  },
+]
+```
+
+### Important Note on `firewall_ingress_cidr`
+
+By default, the `firewall_ingress_cidr` variable is set to `["0.0.0.0/0"]`, which allows any IP to connect. For security reasons, you might want to limit the IP range that can connect to your database.
+
+Options include:
+- Setting it to your local network only.
+- Setting it to the public IP of a specific instance or set of instances.
+- Using a VPN or private network CIDR.
+
+Adjust this variable to suit your specific security requirements.
 
 ## Outputs
 
-- `database_password`: The generated password for the database. This is marked as sensitive and will not be shown in the `terraform apply` output.
+- `database_password`: The password for the created database. (Sensitive)
+- `dns_endpoint`: The DNS endpoint for the created database.
+- `module_enabled`: Indicates if the module is enabled or not.
 
-## Notes
-
-Please note that you should not use `0.0.0.0/0` for `firewall_ingress_cidr` in production as this will allow access to your database from any IP address. 
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
-
-Remember to replace `"path/to/module"` with the actual path to this module in your code.

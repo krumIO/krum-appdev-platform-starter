@@ -57,9 +57,16 @@ variable "cert_manager_chart_version" {
   type        = string
 }
 
+variable "module_enabled" {
+  description = "Enable module"
+  type        = bool
+  default     = true
+}
+
 ##############################################
 ## Cert Manager ##
 resource "helm_release" "cert-manager" {
+  count     = var.module_enabled ? 1 : 0
   name       = "cert-manager"
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
@@ -79,6 +86,7 @@ resource "helm_release" "cert-manager" {
 ##############################################
 ## Lets encrypt staging and production issuers
 resource "kubectl_manifest" "cluster-issuer-letsencrypt-staging" {
+  count     = var.module_enabled ? 1 : 0
   provider   = kubectl
   yaml_body  = <<YAML
 apiVersion: cert-manager.io/v1
@@ -100,6 +108,7 @@ YAML
 }
 
 resource "kubectl_manifest" "cluster-issuer-letsencrypt-production" {
+  count     = var.module_enabled ? 1 : 0
   provider   = kubectl
   yaml_body  = <<YAML
 apiVersion: cert-manager.io/v1
@@ -123,6 +132,7 @@ YAML
 ##############################################
 ## Traefik ##
 resource "helm_release" "traefik_ingress_controller" {
+  count     = var.module_enabled ? 1 : 0
   name             = "traefik"
   repository       = "https://helm.traefik.io/traefik"
   chart            = "traefik"
@@ -204,6 +214,7 @@ EOF
 }
 
 data "kubernetes_service" "traefik" {
+  count = var.module_enabled ? 1 : 0
   metadata {
     name      = "traefik"
     namespace = "traefik"
@@ -213,6 +224,7 @@ data "kubernetes_service" "traefik" {
 
 
 resource "kubectl_manifest" "rbac_cluster_role" {
+  count    = var.module_enabled ? 1 : 0
   provider   = kubectl
   yaml_body  = <<YAML
 kind: ClusterRole
@@ -254,6 +266,7 @@ YAML
 
 
 resource "kubectl_manifest" "rbac_cluster_role_binding" {
+  count   = var.module_enabled ? 1 : 0
   provider   = kubectl
   yaml_body  = <<YAML
 
@@ -275,6 +288,27 @@ YAML
 
 
 output "load_balancer_ip" {
-  value       = data.kubernetes_service.traefik.status[0].load_balancer.0.ingress[0].ip
-  description = "The load balancer IP address."
+  value = var.module_enabled ? data.kubernetes_service.traefik[0].status[0].load_balancer[0].ingress[0].ip : null
+}
+
+
+// output helm repo url and name
+output "helm_repo_url_traefik" {
+  value = var.module_enabled ? helm_release.traefik_ingress_controller[0].repository : null
+}
+
+output "helm_repo_name_traefik" {
+  value = var.module_enabled ? helm_release.traefik_ingress_controller[0].name : null
+}
+
+output "helm_repo_url_cert_manager" {
+  value = var.module_enabled ? helm_release.cert-manager[0].repository : null
+}
+
+output "helm_repo_name_cert_manager" {
+  value = var.module_enabled ? helm_release.cert-manager[0].name : null
+}
+
+output "module_enabled" {
+  value = var.module_enabled
 }
