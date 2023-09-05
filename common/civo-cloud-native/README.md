@@ -1,100 +1,110 @@
-# Terraform Script Readme
+# Terraform Module for Kubernetes Deployment on Civo Cloud
 
-This script helps set up a Kubernetes cluster using the Civo provider, as well as deploy various tools on the cluster like Traefik Ingress Controller, Cert Manager, Rancher, Argo suite, Sonatype Nexus and IQ Server with PostgreSQL database. The script also handles the creation of required network and database resources.
+This Terraform module is designed to provision a Kubernetes cluster on Civo Cloud. It sets up Virtual Private Cloud (VPC) and Firewall configurations specifically for the cluster. Additionally, the module offers optional installations for various DevOps and cloud-native tools like Rancher, the Argo Suite, Sonatype Nexus Repository Manager, Sonatype IQ Server, and more.
 
 ## Prerequisites
 
-- Terraform v0.13+ installed.
-- Civo API token.
-- Kubernetes CLI and Helm CLI installed.
-- Access to an active Civo region.
-- Active email for letsencrypt.
+- Terraform version 1.x
 
-## Providers and Modules
+## Features
 
-This script uses the following Terraform providers:
+- Provisions a Kubernetes cluster on Civo Cloud
+- Configures a Virtual Private Cloud (VPC) and firewall rules for the Kubernetes cluster
+- Provides optional Rancher setup for Kubernetes management
+- Offers optional installation for ArgoCD, Argo Workflows, and Argo Events
+- Enables optional setup for Sonatype Nexus Repository Manager and IQ Server
+- Allows for optional Managed Civo Database integration
+- Supports optional NeuVector installation for container security
+- Facilitates optional Coder installation for development environments
+- More features can be enabled as needed
 
-- Civo
-- Kubernetes
-- Helm
-- Kubectl
-- Local
-- Random
+## Usage
 
-## Variables
-
-You should create a `terraform.tfvars` file in the same directory as your `.tf` files. Here's an example:
+Include this module in your existing Terraform configuration files:
 
 ```hcl
-civo_token                 = "your_civo_api_token"
-civo_region                = "NYC1"
-email                      = "your_email_for_letsencrypt"
-nexus_license_file_path    = null // "path_to_your_nexus_license_file_or_null"
-db_name                    = "nxrmdb"
-db_node_count              = 1
+module "civo-cloud-native" {
+  source = "./common/civo-cloud-native"
+
+  // Civo resources
+  civo_region = var.civo_region
+  civo_token  = var.civo_token
+
+  // For Cert Manager SSL Certificates via LetsEncrypt
+  email = var.email
+
+  // Database configuration (optional)
+  db_name                  = "nxrmdb"
+  db_node_count            = 1
+  db_firewall_ingress_cidr = ["0.0.0.0/0"]
+
+  // Sonatype License (optional)
+  nexus_license_file_path = null
+
+  // Core Dependency
+  enable_kube_loadbalancer = true
+
+  // Optional Modules
+  enable_rancher                     = true
+  enable_argo_suite                  = true
+  proxy_argo_workflows_via_rancher   = true
+  enable_nexus_rm                    = false
+  enable_nexus_docker_registry       = false
+  enable_nexus_iq                    = false
+  proxy_nexus_iq_via_rancher         = false
+  enable_managed_civo_db             = false
+  enable_neuvector                   = false
+  enable_coder                       = false
+}
 ```
 
-## Steps
-
-1. **Clone the repository**
-
-    Clone the repository to your local system with the following command:
-
-    ```bash
-    git clone https://github.com/krumIO/krum-appdev-platform-starter.git
-    ```
-
-2. **Navigate to the project directory**
-
-    Change your directory to the project directory:
-
-    ```bash
-    cd ./krum-appdev-platform-starter
-    ```
-
-
-3. **Initialize Terraform**
-
-    Initialize your Terraform workspace, which will download the provider plugins for Civo, Kubernetes, Helm, Kubectl, Local, and Random.
-
-    ```bash
-    terraform init
-    ```
-
-4. **Plan and apply**
-
-    In order to see any changes that are required for your infrastructure, use:
-
-    ```bash
-    terraform plan
-    ```
-
-    To apply changes to the infrastructure, use:
-
-    ```bash
-    terraform apply
-    ```
-
-    Terraform will show the plan and prompt for approval. If everything looks good, approve the plan and Terraform will make the necessary changes.
-
-## Cleanup
-
-When you're done with the infrastructure created by this script, you can remove all resources by using the `destroy` command. This will delete all resources that Terraform has created.
+Then execute the following commands:
 
 ```bash
-terraform destroy
+terraform init
+terraform apply
 ```
 
-Terraform will show the plan for destruction and prompt for approval. If you agree with the plan, approve it and Terraform will destroy all the resources.
+### Example Input Variables
 
-After running `terraform destroy`, you may want to delete the `.terraform` directory and `terraform.tfstate` files to fully clean up your local workspace.
+An example file named `terraform.tfvars.example` is provided in the main directory. Rename this file to `terraform.tfvars` and populate it with the required variables:
 
-```bash
-rm -rf .terraform terraform.tfstate terraform.tfstate.backup
+```hcl
+# terraform.tfvars
+civo_token  = "your_civo_api_token"
+civo_region = "NYC1"
+email       = "your_email@example.com"
 ```
 
-## Important Note
+For more advanced configurations, you can set optional variables such as `db_name`, `enable_rancher`, among others.
 
-This script uses sensitive data. Never expose your `terraform.tfvars` file, as it contains sensitive information like your Civo API token, email, and potentially other secrets. Always add your `*.tfvars` file to your `.gitignore` to prevent committing it to version control.
+### Inputs
 
-The `terraform.tfstate` and `terraform.tfstate.backup` files contain sensitive data. It's recommended to store the state file in a secure and backed-up location or to use a remote state backend. Always add your `*.tfstate*` files to your `.gitignore` to prevent committing it to version control.
+| Variable                     | Description                                        | Type     | Default           | Dependencies                                          |
+| ---------------------------- | -------------------------------------------------- | -------- | ----------------- | ----------------------------------------------------- |
+| `civo_token`                 | Civo API Token                                     | `string` | -                 | None                                                  |
+| `civo_region`                | Civo region for the deployment                     | `string` | "NYC1"            | None                                                  |
+| `email`                      | Email address for LetsEncrypt certificate requests | `string` | -                 | None                                                  |
+| `cert_manager_version`       | cert-manager version                               | `string` | "1.12.2"          | None                                                  |
+| `rancher_version`            | rancher version                                    | `string` | "2.7.5"           | None                                                  |
+| `traefik_version`            | traefik version                                    | `string` | "23.1.0"          | None                                                  |
+| `ingress_class_name`         | ingress class name                                 | `string` | "traefik"         | None                                                  |
+| `ignore_rancher_metadata`    | ignore rancher metadata                            | `bool`   | `false`           | None                                                  |
+| `db_name`                    | Name of the database                               | `string` | "nxrmdb"          | None                                                  |
+| `db_node_count`              | Number of nodes for the database                   | `int`    | 1                 | None                                                  |
+| `db_firewall_ingress_cidr`   | CIDR for ingress rules                             | `list`   | ["0.0.0.0/0"]     | None                                                  |
+| `kube_config_file`           | Path to kubeconfig file                            | `string` | "./artifacts..."  | None                                                  |
+| `nexus_license_file_path`    | Path to Sonatype Nexus license file                | `string` | `null`            | `enable_nexus_rm` must be `true`                      |
+| `enable_nexus_iq`            | Enable Nexus IQ Server                             | `bool`   | `false`           | `enable_nexus_rm` must be `true`                      |
+| `proxy_nexus_iq_via_rancher` | Proxy Nexus IQ via Rancher                         | `bool`   | `false`           | `enable_rancher` and `enable_nexus_iq` must be `true` |
+| `rancher_installed`          | Rancher installed                                  | `bool`   | `true`            | None                                                  |
+| `artifact_output_directory`  | Directory for output files                         | `string` | "./artifacts/..." | None                                                  |
+| `enable_kube_loadbalancer`   | Enables the Kubernetes load balancer               | `bool`   | `false`           | Core Dependency for many modules                      |
+| `enable_rancher`             | Enables Rancher                                    | `bool`   | `false`           | Requires `enable_kube_loadbalancer` to be `true`      |
+| `enable_argo_suite`          | Enables the Argo Suite                             | `bool`   | `false`           | Requires `enable_kube_loadbalancer` to be `true`      |
+
+**Note**: More dependent variables are available for optional modules. Please refer to the `variables.tf` file for full details and descriptions.
+
+### Outputs
+
+- `cluster_endpoint`: The endpoint URL of the provisioned Kubernetes cluster.
