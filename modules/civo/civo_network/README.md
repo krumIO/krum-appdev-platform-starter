@@ -1,41 +1,31 @@
-# Civo Network Module
+# Terraform Civo Network Module
 
-This module manages a custom network in the [Civo cloud](https://www.civo.com/), which uses the Civo Terraform provider.
+This Terraform module allows you to create a custom network in Civo Cloud. You can enable or disable the creation of the network using the `module_enabled` variable.
 
-## Requirements
+## Dependencies
 
-- Terraform 1.0 or newer.
-- Civo API token
+- Civo Terraform Provider v1.0.35 or newer
 
 ## Usage
 
-Here is an example of how you might use this module in your own Terraform code:
+Here's an example of how to use this module in your Terraform project:
 
 ```hcl
-module "civo_network" {
-  source = "path/to/module"
-  network_name = "my_network"
+module "civo_custom_network" {
+  source = "./path/to/this/module"
+
+  network_name    = "my-custom-network"
 }
 ```
 
-Then, run `terraform init` and `terraform apply`.
-
 ## Variables
 
-- `network_name`: (Required) The base name for the network to be created. A random suffix will be appended to ensure uniqueness.
+| Variable Name    | Description                | Type   | Default Value | Required |
+|------------------|----------------------------|--------|---------------|----------|
+| `network_name`   | Name of the custom network | string |               | Yes      |
+| `module_enabled` | Is module enabled          | bool   | `true`        | No       |
 
 ## Outputs
 
-- `network_id`: The ID of the created network.
+- `network_id`: The ID of the created custom network.
 
-## Notes
-
-Make sure to replace `"path/to/module"` with the actual path to this module in your code.
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)

@@ -1,59 +1,67 @@
-# Rancher Terraform Module
 
-This module provides Terraform scripts to setup [Rancher](https://rancher.com/) in a Kubernetes cluster. It leverages the Helm provider to deploy Rancher.
+# Terraform Rancher Deployment Module
 
-## Resources
+This Terraform module facilitates the deployment and management of Rancher within a Kubernetes cluster. Rancher is an open-source platform for managing Kubernetes clusters.
 
-The following resources are created by this module:
+## Prerequisites
 
-- Rancher
+- Terraform 0.14+
+- Kubernetes Cluster
+- Kubectl
+- Helm
+
+## Features
+
+- Deploys Rancher into a Kubernetes cluster
+- Generates a random admin password for Rancher
+- Outputs important information such as Rancher URL and admin password
 
 ## Usage
 
-```hcl
-module "rancher" {
-  source = "../path/to/module"
+Include this module in your `main.tf` file:
 
-  rancher_version             = "2.6.0"
-  dns_domain                  = "example.com"
-  ingress_class_name          = "nginx"
-  rancher_server_admin_password = "password123"
-  email                       = "admin@example.com"
-  kube_config_file            = "~/.kube/config"
+```hcl
+module "rancher_deployment" {
+  source = "<Your-Module-Source>"
+
+  // ... set your variables here
 }
 ```
 
-## Variables
+## Input Variables
 
-The following variables are used in this module:
+| Variable              | Type    | Default | Description                          |
+|-----------------------|---------|---------|--------------------------------------|
+| `rancher_version`     | string  | N/A     | Version of Rancher to be deployed    |
+| `dns_domain`          | string  | N/A     | DNS domain for the Rancher setup     |
+| `ingress_class_name`  | string  | N/A     | Ingress Class Name                   |
+| `email`               | string  | N/A     | Email for Let's Encrypt setup        |
+| `kube_config_file`    | string  | N/A     | Path to kubeconfig file              |
+| `file_output_directory` | string | N/A    | Directory to save generated files    |
+| `enable_module`       | bool    | `true`  | Enable or disable the module         |
 
-- `rancher_version`: The version of the Rancher to be deployed.
-- `dns_domain`: The DNS domain to be used for the setup.
-- `ingress_class_name`: The Ingress Class Name.
-- `rancher_server_admin_password`: The password for the Rancher server admin.
-- `email`: The email for letsencrypt setup.
-- `kube_config_file`: Path to kubeconfig file.
+> **Note**: Most of the variables do not have default values and must be explicitly set.
 
-## Providers
+## Example
 
-This module uses the following Terraform providers:
+```hcl
+module "rancher_deployment" {
+  source = "<Your-Module-Source>"
+  
+  rancher_version      = "2.6.0"
+  dns_domain           = "example.com"
+  ingress_class_name   = "nginx"
+  email                = "admin@example.com"
+  kube_config_file     = "~/.kube/config"
+  file_output_directory = "/tmp"
+  enable_module        = true
+}
+```
 
-- `hashicorp/kubernetes` version 2.20.0
-- `hashicorp/helm` version 2.9.0
-- `gavinbunney/kubectl` version 1.13.0
-- `hashicorp/local` version 1.4.0
-- `hashicorp/random` version 3.5.1
+## Outputs
 
-## Dependencies
+- `rancher_url`: The URL to access the Rancher Dashboard
+- `rancher_admin_password`: Randomly generated admin password for Rancher
+- `helm_repo_url`: The Helm repository URL used for the Rancher deployment
+- `helm_repo_name`: The Helm release name for the Rancher deployment
 
-- A Kubernetes cluster is required. The cluster connection is configured using the `kube_config_file` variable.
-- The Helm provider is used to deploy Rancher. Make sure Helm is configured correctly in your cluster.
-- The `dns_domain` variable must be a valid and accessible domain. 
-
-## Authors
-
-Module managed by [Krumware](https://github.com/krumIO).
-
-## License
-
-MIT License. See [LICENSE](./LICENSE) for full details.

@@ -1,66 +1,50 @@
-# ArgoCD Terraform Module
+# Terraform ArgoCD, Argo Workflows, and Argo Events Module
 
-This module provides Terraform scripts to setup [ArgoCD](https://argoproj.github.io/argo-cd/), [Argo Workflows](https://argoproj.github.io/argo-workflows/) and [Argo Events](https://argoproj.github.io/argo-events/) in a Kubernetes cluster. It leverages the Helm provider to deploy these tools.
+This Terraform module is designed to set up ArgoCD, Argo Workflows, and Argo Events on a Kubernetes cluster. It leverages the Helm provider for deploying Helm charts for each of the Argo components and uses the Kubernetes provider to interact directly with the cluster. The module also offers the option to enable or disable the setup with the `module_enabled` variable.
 
-## Resources
+## Dependencies
 
-The following resources are created by this module:
-
-- ArgoCD
-- Argo Workflows
-- Argo Events
+- Kubernetes Terraform Provider v2.22.0 or newer
+- Helm Terraform Provider v2.10.1 or newer
+- Kubectl Terraform Provider v1.14.0 or newer
+- Local Terraform Provider v2.4.0 or newer
+- Random Terraform Provider v3.5.1 or newer
 
 ## Usage
 
-```hcl
-module "argocd" {
-  source = "../path/to/module"
+To use this module, include the following in your Terraform code:
 
-  dns_domain                 = "example.com"
-  ingress_class_name         = "nginx"
-  argo_cd_version            = "1.8.7"
-  email                      = "admin@example.com"
-  argo_workflows_version     = "3.1.1"
-  argo_workflows_ingress_enabled = true
-  argo_events_version        = "1.2.1"
-  kube_config_file           = "~/.kube/config"
+```hcl
+module "argo_setup" {
+  source = "./path/to/this/module"
+  
+  dns_domain                   = "example.com"
+  ingress_class_name            = "nginx"
+  argo_cd_chart_version        = "v1.0.0"
+  email                        = "example@example.com"
+  argo_workflows_chart_version = "v1.0.0"
+  argo_events_chart_version    = "v1.0.0"
+  kube_config_file             = "/path/to/kubeconfig"
+  argo_workflows_ingress_enabled = false
 }
 ```
 
 ## Variables
 
-The following variables are used in this module:
+| Variable Name                | Description                                         | Type   | Default Value | Required |
+|------------------------------|-----------------------------------------------------|--------|---------------|----------|
+| `dns_domain`                 | The DNS domain to be used for the setup             | string |               | Yes      |
+| `ingress_class_name`         | The Ingress Class Name                              | string |               | Yes      |
+| `argo_cd_chart_version`      | Version of the Argo CD chart to be deployed         | string |               | Yes      |
+| `email`                      | Email for Let's Encrypt                             | string |               | Yes      |
+| `argo_workflows_chart_version`| Version of the Argo Workflows chart to be deployed  | string |               | Yes      |
+| `argo_workflows_ingress_enabled` | Whether ingress for Argo Workflows is enabled    | bool   | false         | No       |
+| `argo_events_chart_version`  | Version of the Argo Events chart to be deployed     | string |               | Yes      |
+| `kube_config_file`           | Path to the kubeconfig file                         | string |               | Yes      |
+| `module_enabled`             | Whether to enable this module                       | bool   | true          | No       |
 
-- `dns_domain`: The DNS domain to be used for the setup.
-- `ingress_class_name`: The Ingress Class Name.
-- `argo_cd_version`: The version of the Argo CD to be deployed.
-- `email`: The email for letsencrypt setup.
-- `argo_workflows_version`: The version of the Argo Workflows to be deployed.
-- `argo_workflows_ingress_enabled`: Flag to enable ingress for Argo Workflows. Default is false.
-- `argo_events_version`: The version of the Argo Events to be deployed.
-- `kube_config_file`: Path to kubeconfig file.
+## Outputs
 
-## Providers
+- `helm_repo_url`: The URL of the Helm repository used for the Argo CD deployment.
+- `helm_repo_name`: The name of the Helm chart used for the Argo CD deployment.
 
-This module uses the following Terraform providers:
-
-- `hashicorp/kubernetes` version 2.20.0
-- `hashicorp/helm` version 2.9.0
-- `gavinbunney/kubectl` version 1.13.0
-- `hashicorp/local` version 1.4.0
-- `hashicorp/random` version 3.5.1
-
-## Dependencies
-
-- A Kubernetes cluster is required. The cluster connection is configured using the `kube_config_file` variable.
-- The Argo Workflows and Argo Events resources have a dependency on the ArgoCD resource. They will be deployed only after the ArgoCD resource has been successfully deployed.
-- The Helm provider is used to deploy ArgoCD, Argo Workflows and Argo Events. Make sure Helm is configured correctly in your cluster.
-- The `dns_domain` variable must be a valid and accessible domain. 
-
-## Authors
-
-Module managed by [Krumware](https://github.com/krumIO)
-
-## License
-
-MIT License. See [LICENSE](./LICENSE) for full details.
