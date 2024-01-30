@@ -128,3 +128,8 @@ variable "enable_nexus_docker_registry" {
   description = "enable nxrm docker registry"
   default     = false
 }
+
+variable "enable_longhorn" {
+  description = "enable longhorn"
+  default     = false
+}

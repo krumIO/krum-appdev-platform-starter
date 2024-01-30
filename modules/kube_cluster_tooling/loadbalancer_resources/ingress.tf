@@ -152,7 +152,8 @@ entryPoints:
     address: ":8080"
 ports:
   web:
-    redirectTo: websecure
+    redirectTo:
+      port: websecure
 providers:
   kubernetesCRD:
     enabled: true
@@ -166,6 +167,8 @@ persistence:
   enabled: true
   path: /data
   size: 1Gi
+  accessMode: ReadWriteMany
+  storageClass: longhorn
 ingressRoute:
   dashboard:
     entryPoints:

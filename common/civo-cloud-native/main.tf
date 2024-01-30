@@ -3,7 +3,7 @@ terraform {
   required_providers {
     civo = {
       source  = "civo/civo"
-      version = "1.0.35"
+      version = "1.0.39"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -106,8 +106,8 @@ module "kube_loadbalancer" {
   // Email for letsencrypt. Supplied in terraform.tfvars
   email = var.email
   // Chart versions
-  traefik_chart_version      = "24.0.0"
-  cert_manager_chart_version = "1.12.3"
+  traefik_chart_version      = "26.0.0"
+  cert_manager_chart_version = "1.13.1"
 
   depends_on = [module.civo_sandbox_cluster,
   ]
@@ -120,7 +120,7 @@ module "rancher" {
   enable_module    = var.enable_rancher
 
   // Chart versions
-  rancher_version = "2.7.6"
+  rancher_version = "2.7.9"
   // Ingress details
   email              = var.email
   dns_domain         = module.kube_loadbalancer.module_enabled ? join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"]) : null
@@ -140,9 +140,9 @@ module "argo" {
 
 
   // chart versions
-  argo_cd_chart_version        = "5.45.1"
-  argo_workflows_chart_version = "0.33.1"
-  argo_events_chart_version    = "2.4.1"
+  argo_cd_chart_version        = "5.46.8"
+  argo_workflows_chart_version = "0.40.9"
+  argo_events_chart_version    = "2.4.2"
   // ingress details
   email              = var.email
   dns_domain         = module.kube_loadbalancer.module_enabled ? join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"]) : null
@@ -263,7 +263,7 @@ module "neuvector" {
   module_enabled = var.enable_neuvector // if true, neuvector helm chart is installed
 
   // Chart versions
-  neuvector_chart_version = "2.6.1"
+  neuvector_chart_version = "2.7.1"
 
   // Additional Config and Options
   rancher_installed = true // sets ingress to false if rancher is installed and enables rancher sso
@@ -306,5 +306,24 @@ module "coder" {
   file_output_directory = var.artifact_output_directory // This is where the random password will be stored. No need to change this for workshop.
 
   depends_on = [module.kube_loadbalancer,
+  ]
+}
+
+// Longhorn
+module "longhorn" {
+  source           = "../../modules/kube_cluster_tooling/longhorn"
+  enable_module   = var.enable_longhorn
+
+  // Chart versions
+  longhorn_version = "1.5.3"
+
+  // Ingress details
+  ingress_class_name = "traefik"
+  # dns_domain         = module.kube_loadbalancer.module_enabled ? join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"]) : null
+
+  // output_files directory
+  artifact_output_directory = var.artifact_output_directory // This is where the random password will be stored. No need to change this for workshop.
+  
+  depends_on = [module.civo_sandbox_cluster,
   ]
 }
