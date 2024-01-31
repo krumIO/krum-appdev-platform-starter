@@ -119,6 +119,12 @@ resource "helm_release" "rancher" {
     value = random_password.rancher_admin_password[0].result
   }
 
+    // set storage class
+  set {
+    name  = "storageClass"
+    value = "longhorn"
+  }
+
   depends_on = [random_password.rancher_admin_password]
 
 }

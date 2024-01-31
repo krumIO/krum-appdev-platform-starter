@@ -74,9 +74,10 @@ controller:
           Username: admin
           Role: admin
           Password: ${random_password.neuvector_admin_password[0].result}
-pvc:
-  enabled: true
-  capacity: 10Gi
+  pvc:
+    enabled: true
+    capacity: 10Gi
+    storageclass: longhorn
 cve:
   scanner:
     replicas: 1

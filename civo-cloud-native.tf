@@ -29,6 +29,10 @@ module "civo-cloud-native" {
   # Set enable_rancher to true or false as needed
   enable_rancher = true
 
+  // Longhorn
+  # Set enable_longhorn to true or false as needed
+  enable_longhorn = true
+
   // Argo Suite: ArgoCD, Argo Workflows, Argo Events
   # Note: Requires enable_kube_loadbalancer to be true
   enable_argo_suite = true
@@ -53,7 +57,7 @@ module "civo-cloud-native" {
 
   // NeuVector
   # Set enable_neuvector to true or false as needed
-  enable_neuvector = false
+  enable_neuvector = true
 
   // Coder
   # Set enable_coder to true or false as needed
