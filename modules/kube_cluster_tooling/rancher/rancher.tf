@@ -63,6 +63,12 @@ variable "enable_module" {
   default     = true
 }
 
+variable "rancher_release_channel" {
+  description = "The release channel of the Rancher to be deployed."
+  type        = string
+  default    = "stable"
+}
+
 // Generate a random password for rancher admin user auth and traefik dashboard basic-auth
 resource "random_password" "rancher_admin_password" {
   count            = var.enable_module ? 1 : 0
@@ -82,7 +88,7 @@ resource "local_sensitive_file" "rancher_admin_password_and_url" {
 resource "helm_release" "rancher" {
   count      = var.enable_module ? 1 : 0
   name       = "rancher"
-  repository = "https://releases.rancher.com/server-charts/stable"
+  repository = "https://releases.rancher.com/server-charts/${var.rancher_release_channel}"
   chart      = "rancher"
   version    = var.rancher_version
 

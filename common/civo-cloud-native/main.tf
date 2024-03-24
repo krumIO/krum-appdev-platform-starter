@@ -76,8 +76,10 @@ module "civo_sandbox_cluster" {
   source         = "../../modules/civo/civo_kubernetes"
   module_enabled = true
 
-  cluster_name            = "civo-sandbox-${random_id.suffix.hex}"
+  cluster_name            = "${var.prefix}-civo-sandbox-${random_id.suffix.hex}"
   cluster_type            = "k3s"
+  cni                     = var.cni
+  kubernetes_version      = "1.28.7-k3s1" #"1.27.11-k3s1"
   kube_config_output_path = "./artifacts/output_files/kubeconfig.yaml"
   firewall_name           = "civo-sandbox-firewall-${random_id.suffix.hex}"
   network_id              = module.civo_sandbox_cluster_network.network_id
@@ -91,7 +93,7 @@ module "civo_sandbox_cluster" {
 
 module "civo_sandbox_cluster_network" {
   source       = "../../modules/civo/civo_network"
-  network_name = "civo_sandbox_cluster-network-${random_id.suffix.hex}"
+  network_name = "${var.prefix}-civo_sandbox_cluster-network-${random_id.suffix.hex}"
 }
 
 #############################################################
@@ -120,7 +122,8 @@ module "rancher" {
   enable_module    = var.enable_rancher
 
   // Chart versions
-  rancher_version = "2.8.1"
+  rancher_version = "2.8.3-rc6" #"2.8.2"
+  rancher_release_channel = "latest" #latest for preview, stable for stable
   // Ingress details
   email              = var.email
   dns_domain         = module.kube_loadbalancer.module_enabled ? join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"]) : null
@@ -213,7 +216,7 @@ module "nxrm_database" {
   source         = "../../modules/civo/civo_db"
   module_enabled = var.enable_managed_civo_db // if true, database is created
 
-  db_name               = "${var.db_name}-${random_id.suffix.hex}"
+  db_name               = "${var.prefix}-${var.db_name}-${random_id.suffix.hex}"
   region                = var.civo_region
   node_count            = var.db_node_count
   db_network_id         = module.civo_sandbox_cluster_network.network_id
@@ -311,8 +314,8 @@ module "coder" {
 
 // Longhorn
 module "longhorn" {
-  source           = "../../modules/kube_cluster_tooling/longhorn"
-  enable_module   = var.enable_longhorn
+  source        = "../../modules/kube_cluster_tooling/longhorn"
+  enable_module = var.enable_longhorn
 
   // Chart versions
   longhorn_version = "1.5.3"
@@ -323,7 +326,7 @@ module "longhorn" {
 
   // output_files directory
   artifact_output_directory = var.artifact_output_directory // This is where the random password will be stored. No need to change this for workshop.
-  
+
   depends_on = [module.civo_sandbox_cluster,
   ]
 }

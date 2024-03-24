@@ -133,3 +133,15 @@ variable "enable_longhorn" {
   description = "enable longhorn"
   default     = false
 }
+
+variable "prefix" {
+  description = "prefix for the resources example: dev, qa, prod, test"
+  type       = string
+  default    = "test"
+}
+
+variable "cni" {
+  description = "cni plugin to use"
+  type        = string
+  default     = "flannel"
+}

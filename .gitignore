@@ -39,3 +39,4 @@ terraform.rc
 # Ignore artifacts directory
 artifacts/*
 
+*.out
