@@ -82,7 +82,7 @@ resource "local_sensitive_file" "rancher_admin_password_and_url" {
 resource "helm_release" "rancher" {
   count      = var.enable_module ? 1 : 0
   name       = "rancher"
-  repository = "https://releases.rancher.com/server-charts/stable"
+  repository = "https://releases.rancher.com/server-charts/latest"
   chart      = "rancher"
   version    = var.rancher_version
 
