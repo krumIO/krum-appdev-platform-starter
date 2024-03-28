@@ -124,6 +124,7 @@ module "rancher" {
   // Chart versions
   rancher_version = "2.8.3-rc6" #"2.8.2"
   rancher_release_channel = "latest" #latest for preview, stable for stable
+
   // Ingress details
   email              = var.email
   dns_domain         = module.kube_loadbalancer.module_enabled ? join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"]) : null
