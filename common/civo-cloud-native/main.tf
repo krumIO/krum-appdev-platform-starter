@@ -267,7 +267,7 @@ module "neuvector" {
   module_enabled = var.enable_neuvector // if true, neuvector helm chart is installed
 
   // Chart versions
-  neuvector_chart_version = "2.7.1"
+  neuvector_chart_version = "2.7.3"
 
   // Additional Config and Options
   rancher_installed = true // sets ingress to false if rancher is installed and enables rancher sso
