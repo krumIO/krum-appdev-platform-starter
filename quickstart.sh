@@ -36,6 +36,16 @@ case $operation in
                     exit 1
                 fi
                 echo "Destroying the Terraform-managed infrastructure..."
+                # Remove the Helm releases from the Terraform state to avoid errors during destroy of clusters
+                terraform state rm module.civo-cloud-native.module.rancher.helm_release.rancher
+                terraform state rm module.civo-cloud-native.module.neuvector.helm_release.neuvector
+                terraform state rm module.civo-cloud-native.module.argo.helm_release.argo_cd
+                terraform state rm module.civo-cloud-native.module.argo.helm_release.argo_workflows
+                terraform state rm module.civo-cloud-native.module.argo.helm_release.argo_events
+                terraform state rm module.civo-cloud-native.module.kube_loadbalancer.helm_release.traefik_ingress_controller
+                terraform state rm module.civo-cloud-native.module.kube_loadbalancer.helm_release.cert-manager
+                terraform state rm module.civo-cloud-native.module.longhorn.helm_release.longhorn
+                terraform state rm module.civo-cloud-native.module.longhorn.kubernetes_namespace.longhorn
                 terraform destroy
                 ;;
             i)
