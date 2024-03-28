@@ -64,9 +64,14 @@ Upon successful Terraform apply, key outputs such as the Rancher URL, kubeconfig
     terraform init
     ```
 
-4. **Apply Configuration**
+4. **Plan Configuration**
     ```sh
-    terraform apply
+    terraform plan -out="plan.out"
+    ```
+
+5. **Apply Configuration**
+    ```sh
+    terraform apply "plan.out"
     ```
 
 ## Documentation
