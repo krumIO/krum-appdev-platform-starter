@@ -6,5 +6,5 @@ civo_token = "" //required
  # must be a valid email address
 email = "email@example.com" //required
 
-// This is soley to create a prefix to know who the cluster belongs to in the case of deploying multiple clusters to a shared account.
-developer_name = "your name or identifier"
+// Optionally add a prefix to the cluster name, for easier identification
+cluster_name_prefix = "my-prefix"

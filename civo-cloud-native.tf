@@ -5,7 +5,7 @@ module "civo-cloud-native" {
   civo_region = var.civo_region
   civo_token  = var.civo_token
 
-  prefix = var.developer_name
+  prefix = var.cluster_name_prefix
 
   // For Cert Manager SSL Certificates via LetsEncrypt
   # must be a valid email address

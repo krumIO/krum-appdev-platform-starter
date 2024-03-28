@@ -13,7 +13,7 @@ variable "email" {
   type        = string
 }
 
-variable "developer_name" {
+variable "cluster_name_prefix" {
   description = "Developer Name"
   type        = string
 }
