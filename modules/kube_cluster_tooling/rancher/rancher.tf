@@ -22,7 +22,30 @@ terraform {
       source  = "hashicorp/random"
       version = "3.5.1"
     }
+    rancher2 = {
+      source = "rancher/rancher2"
+      version = "4.1.0"
+    }
   }
+}
+
+provider "rancher2" {
+  alias = "bootstrap"
+
+  api_url  = "https://rancher.${var.dns_domain != null ? var.dns_domain : ""}"
+  insecure = false
+  # ca_certs  = data.kubernetes_secret.rancher_cert.data["ca.crt"]
+  bootstrap = true
+}
+
+provider "rancher2" {
+  alias = "admin"
+
+  api_url  = "https://rancher.${var.dns_domain != null ? var.dns_domain : ""}"
+  insecure = false
+  # ca_certs  = data.kubernetes_secret.rancher_cert.data["ca.crt"]
+  token_key = rancher2_bootstrap.admin[0].token
+  timeout   = "300s"
 }
 
 ###############################################
@@ -69,6 +92,16 @@ variable "rancher_release_channel" {
   default    = "stable"
 }
 
+variable "prefix" {
+  description = "The prefix to be used for the setup."
+  type        = string
+}
+
+variable "cluster2_rke2_k3s_version" {
+  description = "The version of the RKE2/K3s to be deployed."
+  type        = string
+}
+
 // Generate a random password for rancher admin user auth and traefik dashboard basic-auth
 resource "random_password" "rancher_admin_password" {
   count            = var.enable_module ? 1 : 0
@@ -77,7 +110,7 @@ resource "random_password" "rancher_admin_password" {
   override_special = "_%@"
 }
 
-resource "local_sensitive_file" "rancher_admin_password_and_url" {
+resource "local_file" "rancher_admin_password_and_url" {
   count    = var.enable_module ? 1 : 0
   content  = "Admin Username: admin\nAdmin Password: ${random_password.rancher_admin_password[0].result}\nRancher Server URL: https://rancher.${var.dns_domain != null ? var.dns_domain : ""}"
   filename = "${var.file_output_directory}/rancher-admin-password-and-url.txt"
@@ -133,6 +166,30 @@ resource "helm_release" "rancher" {
 
   depends_on = [random_password.rancher_admin_password]
 
+}
+
+# Initialize Rancher server
+resource "rancher2_bootstrap" "admin" {
+  count = var.enable_module ? 1 : 0
+  depends_on = [
+    helm_release.rancher,
+  ]
+
+  provider = rancher2.bootstrap
+
+  initial_password = random_password.rancher_admin_password[0].result
+  password  = random_password.rancher_admin_password[0].result
+  telemetry = true
+}
+
+###############################################
+// multicluster configuration
+module "rancher_cluster" {
+  source = "./rancher2_cluster"
+  name = "${var.prefix}-cluster-2"
+  rke2_k3s_version = "v1.28.9+k3s1"
+  token_key = rancher2_bootstrap.admin[0].token
+  rancher_api_url = "https://rancher.${var.dns_domain != null ? var.dns_domain : ""}"
 }
 
 // output rancher url

@@ -7,6 +7,22 @@ terraform {
   }
 }
 
+// Provider configuration for multi-region usage
+provider "civo" {
+  # Configuration options
+  token  = var.civo_token
+  region = var.civo_region
+}
+
+variable "civo_token" {
+  description = "Civo API Token"
+}
+
+variable "civo_region" {
+  description = "Specify Civo region for the deployment"
+  default     = "NYC1"
+}
+
 variable "kube_config_output_path" {
   description = "Path to write the kubeconfig file to"
   type        = string
@@ -133,4 +149,9 @@ output "api_endpoint" {
 output "cluster_name" {
   description = "Cluster name"
   value       = var.module_enabled ? civo_kubernetes_cluster.cluster[0].name : null
+}
+
+output "kubernetes_version" {
+  description = "Kubernetes version"
+  value       = var.module_enabled ? civo_kubernetes_cluster.cluster[0].kubernetes_version : null
 }

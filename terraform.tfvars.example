@@ -1,5 +1,5 @@
 // Civo resources
-civo_region = "LON1" //required
+civo_region = "NYC1" //required
 civo_token = "" //required
 
 // For Cert Manager SSL Certificates via LetsEncrypt

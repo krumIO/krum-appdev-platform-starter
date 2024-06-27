@@ -15,8 +15,25 @@ variable "module_enabled" {
   default     = true
 }
 
+// Provider configuration for multi-region usage
+provider "civo" {
+  # Configuration options
+  token  = var.civo_token
+  region = var.civo_region
+}
+
+variable "civo_token" {
+  description = "Civo API Token"
+}
+
+variable "civo_region" {
+  description = "Specify Civo region for the deployment"
+  default     = "NYC1"
+}
+
 resource "civo_network" "custom_net" {
   count = var.module_enabled ? 1 : 0
+  provider = var.provider
   label = "${var.network_name}"
 }
 
