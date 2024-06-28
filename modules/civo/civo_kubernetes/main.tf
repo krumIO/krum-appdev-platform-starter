@@ -2,7 +2,7 @@ terraform {
   required_providers {
     civo = {
       source  = "civo/civo"
-      version = "1.0.39"
+      version = "1.0.45"
     }
   }
 }
@@ -33,13 +33,13 @@ variable "module_enabled" {
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.27.11-k3s1"
+  default     = "1.28.7-k3s1"
 }
 
 variable "cni" {
   description = "CNI plugin to use"
   type        = string
-  default     = "flannel"
+  default     = "cilium"
 }
 
 data "civo_size" "xsmall" {

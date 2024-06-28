@@ -143,5 +143,5 @@ variable "prefix" {
 variable "cni" {
   description = "cni plugin to use"
   type        = string
-  default     = "flannel"
+  default     = "cilium"
 }

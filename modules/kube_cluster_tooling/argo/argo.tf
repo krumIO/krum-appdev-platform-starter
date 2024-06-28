@@ -89,6 +89,7 @@ resource "helm_release" "argo_cd" {
 
   namespace        = "argocd"
   create_namespace = true
+  wait             = false
 
   values = [<<EOF
 configs:
@@ -115,16 +116,12 @@ server:
       memory: 1Gi
   ingress:
     enabled: true
-    hosts:
-      - "argocd.${var.dns_domain != null ? var.dns_domain : ""}"
+    hostname: 'argocd.${var.dns_domain != null ? var.dns_domain : ""}'
     servicePort: 80
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-production
       kubernetes.io/ssl-passthrough: "true"
-    tls:
-      - hosts:
-        - "argocd.${var.dns_domain != null ? var.dns_domain : ""}"
-        secretName: "argocd-secret"
+    tls: true
 EOF
   ]
 
@@ -140,6 +137,7 @@ resource "helm_release" "argo_workflows" {
 
   namespace        = "argocd"
   create_namespace = false
+  wait             = false
 
   values = [local.argo_workflows_values]
 
@@ -178,6 +176,7 @@ resource "helm_release" "argo_events" {
 
   namespace        = "argocd"
   create_namespace = false
+  wait             = false
 
   set {
     name  = "crds.install"

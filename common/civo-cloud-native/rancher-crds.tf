@@ -1,4 +1,5 @@
 // Add helm chart repos to rancher for lifecycle mangaement
+
 module "rancher_repo_crd_module_argo" {
   source            = "../../modules/kube_cluster_tooling/rancher/cluster-repo-crd"
   rancher_installed = var.rancher_installed

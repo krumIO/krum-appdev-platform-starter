@@ -113,7 +113,7 @@ resource "helm_release" "coder" {
   version          = var.coder_chart_version
   namespace        = "coder"
   create_namespace = true
-  wait             = true
+  wait             = false
 
   values = [
     <<EOT
@@ -125,7 +125,7 @@ coder:
           name: coder-db-url
           key: url
     - name: CODER_ACCESS_URL
-      value: "https://coder.212.2.247.221.sslip.io"
+      value: "https://coder.${var.dns_domain}"
   
   service:
     enabled: true

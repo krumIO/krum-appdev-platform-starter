@@ -3,7 +3,7 @@ terraform {
   required_providers {
     civo = {
       source  = "civo/civo"
-      version = "1.0.39"
+      version = "1.0.45"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -79,7 +79,7 @@ module "civo_sandbox_cluster" {
   cluster_name            = "${var.prefix}-civo-sandbox-${random_id.suffix.hex}"
   cluster_type            = "k3s"
   cni                     = var.cni
-  kubernetes_version      = "1.28.7-k3s1" #"1.27.11-k3s1"
+  kubernetes_version      = "1.28.7-k3s1"
   kube_config_output_path = "./artifacts/output_files/kubeconfig.yaml"
   firewall_name           = "civo-sandbox-firewall-${random_id.suffix.hex}"
   network_id              = module.civo_sandbox_cluster_network.network_id
@@ -122,7 +122,7 @@ module "rancher" {
   enable_module    = var.enable_rancher
 
   // Chart versions
-  rancher_version = "2.8.3-rc6" #"2.8.2"
+  rancher_version = "v2.9.0-rc1" # https://github.com/rancher/rancher/releases/tag/v2.9.0-rc1
   rancher_release_channel = "latest" #latest for preview, stable for stable
 
   // Ingress details
@@ -144,9 +144,9 @@ module "argo" {
 
 
   // chart versions
-  argo_cd_chart_version        = "5.46.8"
-  argo_workflows_chart_version = "0.40.9"
-  argo_events_chart_version    = "2.4.2"
+  argo_cd_chart_version        = "6.11.1"
+  argo_workflows_chart_version = "0.41.6"
+  argo_events_chart_version    = "2.4.4"
   // ingress details
   email              = var.email
   dns_domain         = module.kube_loadbalancer.module_enabled ? join(".", [module.kube_loadbalancer.load_balancer_ip, "sslip.io"]) : null
